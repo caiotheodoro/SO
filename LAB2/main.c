@@ -21,6 +21,20 @@ int main(int argc, char *argv[]){
     for(int i = 0; i < arvore; i++) printf("PaiID %d -\t", arvPai[i]);
     printf("((PID: %d))\n", getpid());
 
+// questão 2
+// execl()   wait(2);
+
+//questão 3
+// int L;
+// scanf("%d",&L);
+// int aux= N/L;
+//  for(int i=1;i<=L;i++){  #subdivisão para L processos
+//      for(j=0;j<(N/L)*i; j++){
+//          if(vetor[i] == valor)
+//              return 1;   
+//       }
+//  }    
+
     int x;
     scanf("%d", &x);
     return 0;
