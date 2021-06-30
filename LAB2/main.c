@@ -22,7 +22,13 @@ int main(int argc, char *argv[]){
     printf("((PID: %d))\n", getpid());
 
 // questão 2
-// execl()   wait(2);
+//char path = "/bin/ls";
+//int i=2;
+//char args[] = path;
+//while(argv[i]!=NULL);
+// args[] += argv[i];
+//  execv(bin_path,args);
+//wait(10);
 
 //questão 3
 // int L;
