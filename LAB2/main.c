@@ -1,3 +1,10 @@
+//O Código tem como função criar processos do arquivo a partir do comando fork(),
+// e manupulá-las, usando funções da biblioteca e funções específicas criadas.
+
+
+// AUTORES: Caio Theodoro, Caio Miglioli, Alexandre Scrocaro
+//Datas: github.com/caiotheodoro/SO/commits/master
+
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,23 +30,31 @@ int main(int argc, char *argv[]){
 
 // questão 2
 //char path = "/bin/ls";
-//int i=2;
-//char args[] = path;
-//while(argv[i]!=NULL);
-// args[] += argv[i];
-//  execv(bin_path,args);
+// chat* args[] = path;
+// args[] += argv[2]; 
+// if(argv[3]) args[]+= argv[3]; //se argv[3] não for nulo, insere em args (casos de flag)
+//  execv(bin_path,args); //executa os ARGS no bash
 //wait(10);
 
 //questão 3
-// int L;
-// scanf("%d",&L);
-// int aux= N/L;
+// int L; 
+// scanf("%d",&L);  //lê a divisão do vetor
+// int aux= N/L; //divide o vetor por L
 //  for(int i=1;i<=L;i++){  #subdivisão para L processos
-//      for(j=0;j<(N/L)*i; j++){
-//          if(vetor[i] == valor)
+//      for(j=0;j<(N/L)*i; j++){ //multiplica o vetor a cada loop até chegar a N elementos lidos.
+//          if(vetor[i] == valor) //compara com o valor
 //              return 1;   
 //       }
 //  }    
+
+// questão 4
+//char path = "/bin/ls";
+//int i=2;
+//char args[] = path;
+//while(argv[i]!=NULL); //roda até que todos comandos do terminal tenham sido percorridas
+// args[] += argv[i]; //coleta todos argumentos passado  no terminal
+//  execv(bin_path,args); //executa os ARGS no bash
+//wait(10);
 
     int x;
     scanf("%d", &x);
