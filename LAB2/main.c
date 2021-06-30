@@ -56,6 +56,8 @@ int main(int argc, char *argv[]){
 //  execv(bin_path,args); //executa os ARGS no bash
 //wait(10);
 
+// while permeando o código  para interface de shell simples dando opções. 
+
     int x;
     scanf("%d", &x);
     return 0;
