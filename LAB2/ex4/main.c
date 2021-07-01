@@ -1,7 +1,15 @@
 
+//Tem como objetivo simular a interface de um bash. São inseridos um printf e fgets
+// em um loop infinito até que seja digitado "exit". O processo intercepta a string digitada e
+//busca nela um '&' para verificar o processo de segundo plano, caso não seja encontrado executa
+//todo o código digitado, caso não, roda a substrig até o & em segundo plano, executa o
+//restando usando system então reestabele o fgets.
+
+// AUTORES: Caio Theodoro, Caio Miglioli, Alexandre Scrocaro
+//Datas: github.com/caiotheodoro/SO/commits/master
+
+
 #include <unistd.h>      /* fork(), execv(), getpid(), getppid() */
-
-
 #include <sys/wait.h>    /* wait() */
 #include <stdio.h>
 #include <stdlib.h>

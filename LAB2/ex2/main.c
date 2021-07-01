@@ -1,3 +1,11 @@
+//Tem como objetivo interceptar um comando bash e executá-lo.
+//É criado um filho do processo para executar o comando, e enquanto o filho 
+//executa, o pai aguarda o fim da execução. 
+//
+
+// AUTORES: Caio Theodoro, Caio Miglioli, Alexandre Scrocaro
+//Datas: github.com/caiotheodoro/SO/commits/master
+
 
 #include <unistd.h>      /* fork(), execv(), getpid(), getppid() */
 // #include <sys/types.h>   /* pid_t type */
@@ -8,23 +16,23 @@
 #include <string.h>
 
 int main(int argc, char *argv[]){ //argv[0] == ./main
-    if(argc < 2) return printf("erro nenhum comando de sistema inserido\n"); 
+    if(argc < 2) return printf("erro nenhum comando de sistema inserido\n"); //verifica se foi digitado um comando depois do /.main
 
-    int child = fork();
+    int child = fork(); //cria filho com fork()
 
     if(!child){ //filho
         char cmd[250];
         for(int i = 1; i < argc; i++){
-            strcat(cmd, argv[i]);
-            strcat(cmd, " ");
+            strcat(cmd, argv[i]); //concatena os comando digitados
+            strcat(cmd, " "); //separa os comando por espaço
         }
 
-        system(cmd);
-        printf("------------------\nchild id %d, done.\n", getpid());
+        system(cmd); //executa o comando
+        printf("------------------\nchild id %d, done.\n", getpid()); //imprime pid filho
     }else{ //pai
 
         int status;
-        wait(&status);
+        wait(&status); //faz o pai esperar o filho executar
         printf("father id %d, done. \nchild status: %d\n", getpid(), status);
     }
 }
