@@ -29,14 +29,13 @@ int main(int argc, char *argv[]){
 
         if(comando == "exit") return 0; //verifica se não é exit
         len = strlen(comando);
-        printf("strlen(comando) %d",len);
 
         for(i=0;i< strlen(comando); i++){ //percorre a string
             if(comando[i] == '&'){ //procura o '&'
                 char* comando1;
                 memcpy(comando1,comando,i); //copia a substring até o &
                  printf("comando1 %s",comando1); 
-                execl("/bin/ls","/bin/ls",comando1); //executa
+                system(comando1); //executa
 
                 while(i != strlen(comando)){ //joga o restante dentro de com
                     comando[j] =  comando[i+1]; //reescreve comando com o restante
