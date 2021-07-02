@@ -36,7 +36,7 @@ int main(int argc, char *argv[]){
                 char* comando1;
                 memcpy(comando1,comando,i); //copia a substring até o &
                  printf("comando1 %s",comando1); 
-                execl("/bin/ls","/bin/ls",comando1); //executa
+                system(comando1); //executa
 
                 while(i != strlen(comando)){ //joga o restante dentro de com
                     comando[j] =  comando[i+1]; //reescreve comando com o restante
