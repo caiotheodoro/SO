@@ -29,7 +29,6 @@ int main(int argc, char *argv[]){
 
         if(comando == "exit") return 0; //verifica se não é exit
         len = strlen(comando);
-        printf("strlen(comando) %d",len);
 
         for(i=0;i< strlen(comando); i++){ //percorre a string
             if(comando[i] == '&'){ //procura o '&'
