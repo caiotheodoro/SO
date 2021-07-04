@@ -82,13 +82,13 @@ int main()
 
 
     pthread_create(&t1, NULL, thread_calc, &data1);
-    pthread_create(&t2, NULL, thread_calc, &data1);
-    pthread_create(&t3, NULL, thread_calc, &data1);
-    pthread_create(&t4, NULL, thread_calc, &data1);
-    pthread_create(&t5, NULL, thread_calc, &data1);
-    pthread_create(&t6, NULL, thread_calc, &data1);
-    pthread_create(&t7, NULL, thread_calc, &data1);
-    pthread_create(&t8, NULL, thread_calc, &data1);    
+    pthread_create(&t2, NULL, thread_calc, &data2);
+    pthread_create(&t3, NULL, thread_calc, &data3);
+    pthread_create(&t4, NULL, thread_calc, &data4);
+    pthread_create(&t5, NULL, thread_calc, &data5);
+    pthread_create(&t6, NULL, thread_calc, &data6);
+    pthread_create(&t7, NULL, thread_calc, &data7);
+    pthread_create(&t8, NULL, thread_calc, &data8);    
 
     pthread_join (t1, NULL);
     pthread_join (t2, NULL);
