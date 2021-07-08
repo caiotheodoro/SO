@@ -1,0 +1,7 @@
+palavra1 palavra2, palavra3, palavra4.
+palavra5 palavra6.
+
+
+palavra7.
+
+
