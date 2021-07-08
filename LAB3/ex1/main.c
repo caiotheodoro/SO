@@ -2,62 +2,66 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <string.h>
 #include "random_vector.h"
+// #include "thread.h"
 
 typedef struct Data {
-    int pos_i,pos_f;
-    int *v1;
+    int pos_i, pos_f;
+    int *array;
     int chave;
+    int seq;
 }Data;
 
 
-Data* criaData(int ini, int fim,int*v1, int chave){
-  Data* novo = (Data*) malloc (sizeof(Data));
+Data* criaData(int ini, int fim, int* array, int chave, int seq){
+  Data* novo = (Data*)malloc(sizeof(Data));
   novo->pos_i = ini;
   novo->pos_f = fim;
-  novo->v1 = v1;
+  novo->array = array;
   novo->chave = chave;
-
+  novo->seq = seq;
   return novo;
 }
+
+
 void * new_thread(void* param){
-  int i;
-  struct Data *thread = param;
-  int chave = thread->chave;
-  printf("ee");
-  for(int i = thread->pos_i;i < thread->pos_f;i++){
-    if(thread->v1[i] == chave){
-      return printf("Thread id: %ld, Posição inicio %d, Posição final: %d\n", pthread_self(),thread->pos_i, thread->pos_f);
+  struct Data* thread = param;
+  for(int i = thread->pos_i; i < thread->pos_f; i++){
+    if(thread->array[i] == thread->chave){
+      printf("Thread %d (ID %ld): Encontrado valor %d no index %d do vetor.\n", thread->seq, pthread_self(), thread->chave, i);
     }
   }
 }
 
+
 int main(int argc, char *argv[])
 {
-  printf("EEE ");
-    int N=atoi(argv[1]); 
-   printf("%d ", N);
-    int tamVetor=atoi(argv[2]);
-       printf("%d ", tamVetor);
-    int valorBuscar = atoi(argv[3]);
-     printf("%d ", valorBuscar);
-    rv* v1 = rv_gerar(tamVetor, 10000);
-  //   printf("%d ", v1);
+  if(argc < 4) return printf("./$ <N_Threads> <valorBusca>");
 
-    pthread_t t1[N];
-   
+  int N = atoi(argv[1]);
+  int valorBuscar = atoi(argv[2]);
 
-  for(int i=0;i<N-1;i++){
-    Data *thread = criaData(i*(tamVetor/N),(i+1)*(tamVetor/N),v1->array, valorBuscar);
-    pthread_create(&t1[i], NULL, new_thread, &thread[i]);
-    pthread_join (t1[i], NULL);
-  
+  int tamVetor = N*50000;
+  rv* vtr = rv_gerar(tamVetor, 25000);
+
+  pthread_t t1[N];
+
+
+  for(int i=0;i<N;i++){
+
+    int ini = i*(tamVetor/N);
+    int fim = (i+1)*(tamVetor/N)-1;
+    if((i+1) >= N) fim = tamVetor;
+
+    Data* data_chunk = criaData(ini, fim, vtr->array, valorBuscar, i);
+      //printf("v %d, ini %d, fim %d, 1 %d, 2 %d, 3 %d\n", data_chunk[i]->chave, data_chunk[i]->pos_i, data_chunk[i]->pos_f,data_chunk[i]->array[1], data_chunk[i]->array[2], data_chunk[i]->array[3]);
+    
+    pthread_create(&t1[i], NULL, new_thread,  (void*) data_chunk);
+    // pthread_join (t1[i], NULL);
+
   }
 
-
-   
-
-
-    return 0;
+  printf("main finalizado\n");
+  pthread_exit(0);
+  return 0;
 }
