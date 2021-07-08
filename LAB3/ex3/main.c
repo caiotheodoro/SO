@@ -4,13 +4,13 @@
 #include <pthread.h>
 #include <time.h>
 #include <unistd.h>
-
+#include <ctype.h>
 #include "matriz.h"
 #include "datachunk.h"
 
 void* calcMedia(void* data);
 void* calcMediana(void * data);
-
+void geraMatriz(int rMax,int cMax, int vMax);
 int threads;
 
 int main(int argc, char *argv[]){
@@ -19,13 +19,14 @@ int main(int argc, char *argv[]){
     clock_t begin = clock();
     /* fim tempo de exec header */
 
-
-
+   
+    char res;
     if(argc < 2) return printf("./$ <N_Threads>");
     threads = atoi(argv[1]);
 
     int r, c;
-    int** matrix = read_matrix_from_file("matriz_6por8.in", &r, &c);
+    geraMatriz(10,10,100);
+    int** matrix = read_matrix_from_file("matriz.in", &r, &c);
     // print_matrix(matrix, r, c);
     // printf("r %d, c %d\n", r, c);
 
@@ -107,27 +108,36 @@ int main(int argc, char *argv[]){
     printf("Tempo de exec em milisegundos: %f\n", (float)time_spent);
     /* fim tempo de exec footer */
 
+    printf("deseja salvar em um arquivo? (s/n)");
+    scanf("%c",&res );
+    res = tolower(res);
+    if(res == 's'){
     FILE* pFile;
 
-    pFile = fopen("matriz_resposta.in","w");
-    if(pFile){
-        fputs("média\n\n",pFile);
-     for(int i=0; i<c; i++) {
-        char* insert;
-        sprintf(insert,"%f",media[i]);
-        fputs(insert,pFile);
-        fputs("\n",pFile);
-        }
-        fputs("mediana\n\n",pFile);
-     for(int i=0; i<r; i++) {
-        char* insert;
-        sprintf(insert,"%f",mediana[i]);
-        fputs(insert,pFile);
-        fputs("\n",pFile);
-        }
+        pFile = fopen("matriz_resposta.in","w");
+        if(pFile){
+            fputs("média\n\n",pFile);
+        for(int i=0; i<c; i++) {
+            char* insert;
+            sprintf(insert,"%f",media[i]);
+            fputs(insert,pFile);
+            fputs("\n",pFile);
+            }
+            fputs("mediana\n\n",pFile);
+        for(int i=0; i<r; i++) {
+            char* insert;
+            sprintf(insert,"%f",mediana[i]);
+            fputs(insert,pFile);
+            fputs("\n",pFile);
+            }
     }
     
     fclose(pFile);
+    }
+    else{
+        printf("Fim de execução.");
+    }
+ 
 
     pthread_exit(0);
 }
@@ -168,3 +178,26 @@ void* calcMediana(void * data){
     }
 }
 
+void geraMatriz(int rMax,int cMax, int vMax){
+
+    FILE* pFile;
+    char* insert;
+    int value;
+    
+    rMax = rand() % rMax;
+    cMax = rand() % cMax;   
+
+    pFile = fopen("matriz.in","w");
+    if(pFile){
+        sprintf(insert,"%dx%d\n",rMax,cMax);
+    for(int i=0; i<rMax; i++) {
+        for(int j=0; i<cMax; i++) {
+            value = rand() % vMax;
+            sprintf(insert,"%d ",value);
+            fputs(insert,pFile);
+            }
+            fputs("\n",pFile);
+        }   
+    }
+fclose(pFile);
+}
