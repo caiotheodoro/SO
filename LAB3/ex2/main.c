@@ -1,9 +1,13 @@
+// Programa com 2 threads que calcula a frequência de elementos em um vetor com valores de 0 a 9
+
+// AUTORES: Caio Theodoro, Caio Miglioli, Alexandre Scrocaro
+// Datas: github.com/caiotheodoro/SO/commits/master
+
 #include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include "random_vector.h"
-// #include "thread.h"
 
 int frequencia[2][10];
 
@@ -43,13 +47,14 @@ int main()
   rv* vtr = rv_gerar(tamVetor, 10);
   pthread_t t1[2];
 
+  // zera todas frequencias
   for(int i = 0; i<2; i++){
     for(int j = 0; j<10; j++){
       frequencia[i][j] = 0;
     }
   }
 
-
+  // obtem os dados
   for(int i=0;i<N;i++){
 
     int ini = i*(tamVetor/N);
@@ -57,7 +62,7 @@ int main()
     if((i+1) >= N) fim = tamVetor;
 
     Data* data_chunk = criaData(ini, fim, vtr->array, i);
-    //printf("v %d, ini %d, fim %d, 1 %d, 2 %d, 3 %d\n", data_chunk->seq, data_chunk->pos_i, data_chunk->pos_f,data_chunk->array[1], data_chunk->array[2], data_chunk->array[3]);
+    // printf("v %d, ini %d, fim %d, 1 %d, 2 %d, 3 %d\n", data_chunk->seq, data_chunk->pos_i, data_chunk->pos_f,data_chunk->array[1], data_chunk->array[2], data_chunk->array[3]);
     
     pthread_create(&t1[i], NULL, new_thread,  (void*) data_chunk);
     // pthread_join (t1[i], NULL);
@@ -67,6 +72,7 @@ int main()
   pthread_join (t1[0], NULL);
   pthread_join (t1[1], NULL);
 
+  // calcula e printa as frequências
   for(int i=0; i<10; i++){
     int freq = frequencia[0][i]+frequencia[1][i];
     printf("Total de '%d' no vetor: %d \t-> Frequencia: %.2f%% \t-> (t1 %d + t2 %d)\n", i, freq, (float)(freq*100)/tamVetor, frequencia[0][i], frequencia[1][i]);

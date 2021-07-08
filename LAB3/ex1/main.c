@@ -1,3 +1,8 @@
+// utiliza N threads na busca e identificação de determinado valor
+
+// AUTORES: Caio Theodoro, Caio Miglioli, Alexandre Scrocaro
+// Datas: github.com/caiotheodoro/SO/commits/master
+
 #include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>
