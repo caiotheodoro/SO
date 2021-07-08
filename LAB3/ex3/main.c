@@ -107,6 +107,27 @@ int main(int argc, char *argv[]){
     printf("Tempo de exec em milisegundos: %f\n", (float)time_spent);
     /* fim tempo de exec footer */
 
+    FILE* pFile;
+
+    pFile = fopen("matriz_resposta.in","w");
+    if(pFile){
+        fputs("média\n\n",pFile);
+     for(int i=0; i<c; i++) {
+        char* insert;
+        sprintf(insert,"%f",media[i]);
+        fputs(insert,pFile);
+        fputs("\n",pFile);
+        }
+        fputs("mediana\n\n",pFile);
+     for(int i=0; i<r; i++) {
+        char* insert;
+        sprintf(insert,"%f",mediana[i]);
+        fputs(insert,pFile);
+        fputs("\n",pFile);
+        }
+    }
+    
+    fclose(pFile);
 
     pthread_exit(0);
 }
@@ -146,3 +167,4 @@ void* calcMediana(void * data){
         chunk->array[i] = mediana;
     }
 }
+
