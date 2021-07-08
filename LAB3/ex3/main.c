@@ -1,3 +1,10 @@
+// Programa com N threads que calcula a mediana das linhas de uma matriz
+// e a média das suas colunas. além de calcular seu tempo de execução.
+// Ademais, o programa salva os resultados obtidos em um arquivo.
+
+// AUTORES: Caio Theodoro, Caio Miglioli, Alexandre Scrocaro
+// Datas: github.com/caiotheodoro/SO/commits/master
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -83,8 +90,7 @@ int main(int argc, char *argv[]){
         calcMediana((void*)chunkMediana[0]);
     }
 
-    //printf vetor1 e vetor2
-    //salvar no arquivo
+    //printf vetores de media e mediana
 
     for(int i=0; i<threads; i++){
         if(i!=0) pthread_join(t[i], NULL);
@@ -100,8 +106,6 @@ int main(int argc, char *argv[]){
 
     printf("main finalizado\n");
 
-    // for(int i=0; i < 1000000000; i++);
-
     /* tempo de exec footer */
     clock_t end = clock();
     double time_spent = (double)((end - begin)*1000)/CLOCKS_PER_SEC;
@@ -112,6 +116,7 @@ int main(int argc, char *argv[]){
     scanf("%c",&res );
     res = tolower(res);
     if(res == 's'){
+    //salvar no arquivo
     FILE* pFile;
 
         pFile = fopen("matriz_resposta.in","w");
@@ -166,7 +171,6 @@ void* calcMediana(void * data){
     //printf("c %d\n", chunk->c);
 
     //ordenar as linhas
-
     for(int i=chunk->ini; i<chunk->fim; i++){ //roda as linhas
         float mediana = -1;
         if(chunk->c % 2 == 0){
