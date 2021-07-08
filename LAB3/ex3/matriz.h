@@ -9,6 +9,9 @@
 /** cria uma matriz de inteiros row x col **/
 int** create_matrix(int row, int col);
 
+/** gera o arquivo da matriz */
+void geraMatriz(int rMax,int cMax, int vMax);
+
 /* gera elementos inteiros para uma matriz row x col existente */
 void generate_elements(int** matrix, int row, int col, int limit);
 

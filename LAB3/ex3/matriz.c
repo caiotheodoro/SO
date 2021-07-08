@@ -19,6 +19,31 @@ int** create_matrix(int row, int col) {
       matrix[i] = (int *)malloc(col * sizeof(int));
    return matrix;
 }
+/** gera o arquivo da matriz */
+void geraMatriz(int rMax,int cMax, int vMax){
+
+    FILE *fp;
+    char output[] = "matriz_entrada.in"; //nome do arquivo a ser salvo
+    int i,j;
+    int value;
+    fp = fopen(output,"w");//abertura do arquivo no modo de escrita
+    if(fp){
+        fprintf(fp,"%dx%d\n", rMax,cMax); 
+        for(i=0;i<rMax;i++){
+            for(j=0;j<cMax;j++){
+            value = rand() % vMax;
+            fprintf(fp,"%d ",value);
+
+            }
+            fputs("\n",fp);
+        }
+
+    }
+
+    fclose(fp);
+}
+
+
 
 /** exibe a matriz de inteiros na saída padrão **/
 void print_matrix(int** matrix, int row, int col) {
