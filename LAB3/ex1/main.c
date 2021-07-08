@@ -2,8 +2,8 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 #include "random_vector.h"
-#include "thread.h"
 
 typedef struct Data {
     int pos_i,pos_f;
@@ -25,6 +25,7 @@ void * new_thread(void* param){
   int i;
   struct Data *thread = param;
   int chave = thread->chave;
+  printf("ee");
   for(int i = thread->pos_i;i < thread->pos_f;i++){
     if(thread->v1[i] == chave){
       return printf("Thread id: %ld, Posição inicio %d, Posição final: %d\n", pthread_self(),thread->pos_i, thread->pos_f);
@@ -34,20 +35,22 @@ void * new_thread(void* param){
 
 int main(int argc, char *argv[])
 {
-    int N=argv[1];
-    int tamVetor=argv[2];
-    int valorBuscar = argv[3];
-
+  printf("EEE ");
+    int N=atoi(argv[1]); 
+   printf("%d ", N);
+    int tamVetor=atoi(argv[2]);
+       printf("%d ", tamVetor);
+    int valorBuscar = atoi(argv[3]);
+     printf("%d ", valorBuscar);
     rv* v1 = rv_gerar(tamVetor, 10000);
-
+  //   printf("%d ", v1);
 
     pthread_t t1[N];
    
 
   for(int i=0;i<N-1;i++){
-    Data *thread = criaData(i*(tamVetor/N),(i+1)*(tamVetor/N),v1, valorBuscar);
-
-    pthread_create(&t1[i], NULL, new_thread,  &v1->array[i]);
+    Data *thread = criaData(i*(tamVetor/N),(i+1)*(tamVetor/N),v1->array, valorBuscar);
+    pthread_create(&t1[i], NULL, new_thread, &thread[i]);
     pthread_join (t1[i], NULL);
   
   }
