@@ -28,19 +28,19 @@ void geraMatriz(int rMax,int cMax, int vMax){
     int value;
     fp = fopen(output,"w");//abertura do arquivo no modo de escrita
     if(fp){
-        fprintf(fp,"%dx%d\n", rMax,cMax); 
+        fprintf(fp,"%dx%d\n", rMax,cMax);  //insere linha x coluna na primeira linha do arquivo
         for(i=0;i<rMax;i++){
             for(j=0;j<cMax;j++){
-            value = rand() % vMax;
-            fprintf(fp,"%d ",value);
+            value = rand() % vMax; //gera um valor aleatorio no intervalo definido
+            fprintf(fp,"%d ",value); //insere o valor no arquivo
 
             }
-            fputs("\n",fp);
+            fputs("\n",fp); //pula linha a cada linha
         }
 
     }
 
-    fclose(fp);
+    fclose(fp);//fecha o arquivo
 }
 
 

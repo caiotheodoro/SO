@@ -117,31 +117,31 @@ int main(int argc, char *argv[]){
     res = tolower(res);
     if(res == 's'){
     //salvar no arquivo
-    FILE* pFile;
+    FILE* pFile; 
     char* insert;
-        pFile = fopen("matriz_resposta.in","w");
+        pFile = fopen("matriz_resposta.in","w"); //abre o arquivo no modo escrita
         if(pFile){
-            fputs("Média\n\n",pFile);
+            fputs("Média\n\n",pFile); //insere "Média" no arquivo
         for(int i=0; i<c; i++) {
             
-            sprintf(insert,"%f",media[i]);
-            fputs(insert,pFile);
-            fputs("\n",pFile);
+            sprintf(insert,"%f",media[i]); //converte o float e insere em insert
+            fputs(insert,pFile); //insere no arquivo
+            fputs("\n",pFile); //pula linha no arquivo
             }
-            fputs("\n\nMediana\n\n",pFile);
+            fputs("\n\nMediana\n\n",pFile); //insere "Mediana" no arquivo
         for(int i=0; i<r; i++) {
             
-            sprintf(insert,"%f",mediana[i]);
-            fputs(insert,pFile);
-            fputs("\n",pFile);
+            sprintf(insert,"%f",mediana[i]); //converte o float e insere em insert
+            fputs(insert,pFile); //insere no arquivo
+            fputs("\n",pFile); //pula linha no arquivo
             }
 
-        sprintf(insert, "\nTempo de exec em segundos: %f\n", (float)time_spent);
-        fputs(insert,pFile);
+        sprintf(insert, "\nTempo de exec em segundos: %f\n", (float)time_spent);//converte o float e insere ele mais o texto em insert
+        fputs(insert,pFile); //insere no arquivo
 
     }
     
-    fclose(pFile);
+    fclose(pFile); //fecha o arquivo
     }
     else{
         printf("Fim de execução.");
