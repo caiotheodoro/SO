@@ -8,7 +8,7 @@ Autores:
     Caio Theodoro, Caio Miglioli, Alexandre Scrocaro
 
 Datas:
-    github.com/caiotheodoro/SO/commits/master
+    https://github.com/caiotheodoro/SO/commits/master/LAB5/ex1
 */
 
 #include <stdio.h>
