@@ -5,7 +5,7 @@ Como executar:
     ./main
 
 Bibliotecas usadas:
-    todas bibliotecas adicionais são usadas para o FIFO (IPC).
+    signal.h para manipulação dos sinais
 
 Exemplo de uso:
     definir frase no arquivo "decodificado.txt"
