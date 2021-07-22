@@ -9,7 +9,7 @@
 #include <fcntl.h>
 #include <string.h>
 
-#define SERVER_FIFO "/tmp/addition_fifo_server"
+#define SERVER_FIFO "/tmp/huya"
 #define MAX_NUMBERS 500
 
 int main (int argc, char **argv)
@@ -28,20 +28,15 @@ int main (int argc, char **argv)
     if ((fd = open (SERVER_FIFO, O_RDONLY)) == -1)
         perror ("open");
 
-
-
      while (1) {
-         // get a message
+    
  
          memset (buf, '\0', sizeof (buf));
          if ((bytes_read = read (fd, buf, sizeof (buf))) == -1)
              perror ("read");
          if (bytes_read == 0)
              continue;
-
-
-		
-
+             
          if (bytes_read > 0) {
              return_fifo = strtok (buf, ", \n");
             printf("%d", bytes_read);
