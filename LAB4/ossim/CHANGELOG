@@ -1,0 +1,13 @@
+
+From 1.0
+    Soft and hard link are implemented at file system simulation   
+
+    
+From 1.1
+	* Some issues related to Disk Algorithms LIFO and STF, related to the way they behaves when most
+	priority requests arrives while simulation is running
+	
+	
+	* Change Memory Background Colors in Pagination Algorithm, that may confuse users because there is no 
+	external fragmentation in Pagination 
+	   

@@ -1,0 +1,61 @@
+ 
+ What is it? 
+ ----------- 
+
+OS Sim (Operating Systems Concepts Simulator) is an
+educational purpose application for graphically simulate operating
+systems concepts and complement the computer science students learning.
+
+It focuses in four different OS components
+process scheduling
+memory management
+file system management 
+disk scheduling policies
+
+  Information
+  --------------
+
+Site: https://sourceforge.net/projects/oscsimulator
+Author: Alex Macia
+License : BSD 
+Current version: 1.1
+
+ Minimum Requirements
+ -----------------------------
+
+java version 1.6  or later  (OpenJDK Runtime Environment recommended)
+
+Screen Resolution (Recommended): 800x600 pixels or higher 
+
+ Installation Instructions 
+ ------------------------- 
+
+  Unpack the archive into a suitable directory structure. 
+
+  tar -xzf ossim-<version>.tar.gz
+
+  eg
+
+  $tar -xzf ossim-1.0.tar.gz
+
+ Running on the command line (Linux)
+ -----------------------------------
+
+$java -jar ossim.jar 
+
+Or alternativelly running script  (Change to the installation folder)
+
+$./ossim.sh
+
+ Running on a Windows platform
+ -----------------------------
+
+You can start the ossim.jar, by  (double-)clicking it. 
+
+ Running Applet version (Cross platform)
+ ---------------------------------------
+
+Open ossim.html in your favorite web browser
+
+Running OS Sim as an Applet has some limitations due to java security issues, 
+it is not possible to open nor save simulations.  
