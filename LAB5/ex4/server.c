@@ -1,6 +1,12 @@
  // servidor para a resposta das jogadas. recebe os dois animais enviados
  //e imprime a resposta para o mestre. 
 
+/*Autores:
+    Caio Theodoro, Caio Miglioli, Alexandre Scrocaro
+
+Datas:
+    https://github.com/caiotheodoro/SO/commits/master/LAB5/ex4 */
+    
 #include <stdio.h>
 #include <stdlib.h>
 #include <error.h>

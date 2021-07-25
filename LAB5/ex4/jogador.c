@@ -1,6 +1,11 @@
 // Jogador, seu papel é escolher um animal que psoteriormente é recebido pelo mestre.
 // um fifo é responsável por receber a resposta do server e o cliente responsável por mandar o dado para o server.
 
+/*Autores:
+    Caio Theodoro, Caio Miglioli, Alexandre Scrocaro
+
+Datas:
+    https://github.com/caiotheodoro/SO/commits/master/LAB5/ex4 */
 #include <stdio.h>
 #include <stdlib.h>
 #include <error.h>
