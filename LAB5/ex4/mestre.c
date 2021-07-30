@@ -1,4 +1,7 @@
- 
+// Mestre, seu papel é escolher um animal que posteriormente é comparado com o do jogador.
+// um fifo é responsável por receber a resposta do server e o cliente responsável por mandar o dado para o server.
+
+//a documentação desse código é igual ao do jogador.
 #include <stdio.h>
 #include <stdlib.h>
 #include <error.h>
