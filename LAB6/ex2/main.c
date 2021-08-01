@@ -14,10 +14,10 @@
 
 
 typedef struct Sync{
-    int* mensagens;
-    char* pp;
-    int binario;
-    pthread_mutex_t *mutex;
+    int* mensagens; //nro de mensagens imprimidas
+    char* pp; //mensagem da thread (ping ou pong)
+    int binario; //binario da thread (0 para ping 1 para pong)
+    pthread_mutex_t *mutex; //(mutex compartilhado das threads)
 } Sync;
 
 
