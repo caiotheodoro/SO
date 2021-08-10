@@ -1,6 +1,7 @@
 /*
 Descrição:
     Programa multithread com uma solucao para o problema do Leitor-Escritor.
+    apertar ctrl+c para parar o programa
     
 Autores:
     Caio Theodoro, Caio Miglioli, Alexandre Scrocaro
@@ -13,7 +14,6 @@ Datas:
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
-#include <sys/types.h> 
 #include <pthread.h>
 #include <semaphore.h>
 
@@ -28,7 +28,6 @@ sem_t mutexLeitor;
 /* variaveis compartilhadas*/
 int leitorlock = 1; //quando uma thread escrita chegar, ela fechara a entrada de novas threads leitoras na secao
 int leitores = 0;
-int buffer = -1;
 
 int main(int argc, char *argv[]){
     if(argc < 3) return printf("./$ <N_Threads> <Proporcao>\n");
@@ -79,7 +78,12 @@ void escritor(void *ptr){
         leitorlock = 1;
 
         //regiao critica
-        buffer = thread_id;
+        
+        // abre o arquivo e escreve o id da thread
+        FILE *p = fopen("arquivo.txt", "w");
+        fprintf(p, "%d", thread_id);
+        fclose(p);
+
         printf("Thread Escritora ID %d escreveu no buffer\n", thread_id);
 
         //simulacao de processamento complexo
@@ -107,6 +111,12 @@ void leitor(void *ptr){
             sem_wait(&mutexLeitor);
             leitores++;
             sem_post(&mutexLeitor);
+
+            // abre o arquivo e lê os dados
+            int buffer;
+            FILE *p = fopen("arquivo.txt", "r");
+            fscanf(p, "%d", &buffer);
+            fclose(p);
 
             printf("ThreadLeitora ID %d leu o que ThreadEscritora ID %d escreveu. Num de leitores: %d\n", thread_id, buffer, leitores);
         
