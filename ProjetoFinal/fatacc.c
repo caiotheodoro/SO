@@ -277,6 +277,31 @@ file_t* readBlock(Superblock sb, int blockNum, int bufferSize){
     return buffer;
 }
 
+FileSystem* createFile(Superblock sb, file_chunk* bloco, int blockNum, char* nome){
+    if(blockNum >= sb.blockQtde) return NULL; //sem espaco
+        // criando file
+        int ID = bloco->qtdFiles++;
+        char * type = strtok(nome, ".");
+        type = strtok(NULL, ".");
+
+        FileSystem* novo = (FileSystem*) malloc(sizeof(FileSystem));
+        novo->bloco = bloco;
+        novo->blockNum = blockNum;
+        novo->nome = nome;
+        novo->type = type;
+        novo->ID = ID;
+      
+        FILE *fp;
+        fp  = fopen (nome, "w"); //path atual
+        fp = fclose(fp);
+
+        // atualizar fat
+        //update()
+
+       return novo;
+ 
+};
+
 
 
 

@@ -64,6 +64,16 @@ typedef struct dirmeta{
     char reserved[12];  //12b
 } DirMeta;              //32b deve ser igual ou maior que Entry
 
+
+typedef struct filesystem{
+        file_chunk* bloco;
+        int blockNum;
+        char* nome;
+        char* type;
+        int ID;
+        /* */
+} FileSystem;
+
 /* ============================================================= */
 
 void facc_format(int blockSize, int blockQtde);
