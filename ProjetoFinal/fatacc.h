@@ -17,7 +17,7 @@
 #define DISCO "disco.txt"
 
 // Superbloco
-typedef struct superblock{
+typedef struct{
     char tipo[8];   //8b
 
     //fat
@@ -30,7 +30,7 @@ typedef struct superblock{
     int blockPos;   //4b
     int blockQtde;  //4b
     int blockSize;  //4b
-} Superblock;       //28b
+} Superblock;       //28bytes
 
 
 // Fat
@@ -42,41 +42,51 @@ typedef int Fat;            //bytes = 4 * Superbloco.blockQtde
 
 // Blocos: Arquivos
 typedef char file_t;
-typedef struct filechunk{
+typedef struct{
     file_t* file;
     int bytes;
 } file_chunk;
 
 // Blocos: Diretorios
-typedef struct entry{
+typedef struct{
     char name[8];       //8b
     char type[4];       //4b extensao (DIR se for diretorio)
     int bytes;          //4b tamanho do arquivo
     int firstBlock;     //4b primeiro bloco onde se encontra o arquivo
     char reserved[12];  //12b para completar 32b e ser potencia de 2
-} Entry;                //32b
+} Entry;                //32bytes
 
-typedef struct dirmeta{
+typedef struct{
     char name[8];       //8b
     int entryQtde;      //4b
     int bytes;          //4b tamanho do arquivo
     int firstBlock;     //4b primeiro bloco onde se encontra o arquivo
     char reserved[12];  //12b
-} DirMeta;              //32b deve ser igual ou maior que Entry
+} DirMeta;              //32bytes, deve ser igual ou maior que Entry
 
+typedef struct{
+    DirMeta meta;
+    Entry** entries;
+} DirChunk;
 
-typedef struct filesystem{
-        file_chunk* bloco;
-        int blockNum;
-        char* nome;
-        char* type;
-        int ID;
-        /* */
-} FileSystem;
+// typedef struct filesystem{
+//         file_chunk* bloco;
+//         int blockNum;
+//         char* nome;
+//         char* type;
+//         int ID;
+//         /* */
+// } FileSystem;
 
 /* ============================================================= */
 
 void facc_format(int blockSize, int blockQtde);
+Superblock* facc_loadSuperblock(int blockSize, int blockQtde);
+Fat* facc_loadFat(Superblock* sb);
+
+DirChunk* facc_loadRoot(Superblock* sb, Fat* fat);
+//DirChunk* facc_loadDirectory(Superblock* sb, Fat* fat);
+void facc_unloadDirectory(DirChunk* dir);
 
 
 
