@@ -47,48 +47,7 @@ void help(){
     printf("\tformat dsc\n\n");
 }
 
-char** split(char* command)
-{
-    char** result    = 0;
-    size_t count     = 0;
-    char delimiter = ' ';
-    char* tmp  = command;
-    char* last_comma = 0;
-    char delim[2];
-    delim[0] = delimiter;
-    delim[1] = 0;
 
-    /* Count how many elements will be extracted. */
-    while (*tmp)
-    {
-        if (delimiter == *tmp)
-        {
-            count++;
-            last_comma = tmp;
-        }
-        tmp++;
-    }
-    count += last_comma < (command + strlen(command) - 1);
-    count++;
-    result = malloc(sizeof(char*) * count);
-
-    if (result)
-    {
-        size_t idx  = 0;
-        char* token = strtok(command, delim);
-
-        while (token)
-        {
-            assert(idx < count);
-            *(result + idx++) = strdup(token);
-            token = strtok(0, delim);
-        }
-        assert(idx == count - 1);
-        *(result + idx) = 0;
-    }
-
-    return result;
-}
 
 
 void changeDirectory(DirChunk* diretorioAtual,Superblock* sb,char* name, int blockNum){
@@ -117,43 +76,61 @@ void moveItem(DirChunk* diretorioAtual,Superblock* sb,char* source,char* destati
     printf("moveItem");
 }
 
-void listDirectory(DirChunk* diretorioAtual, Superblock* sb){
-    /*int firstBlock = diretorioAtual->meta.firstBlock;
-    sb.
-    if()*/
-    // lista o conteudo dentro de um diretorio
-    for(int i=0; i<diretorioAtual->meta.entryQtde; i++){
-        printf("%s\n", diretorioAtual->entries[i]->name);
+void listDirectory(DirChunk* diretorioAtual, char* name){
+    //se nao ha segundo parametro
+    if(name == NULL){
+        for(int i=0; i<diretorioAtual->meta.entryQtde; i++){
+            printf("%s\t", diretorioAtual->entries[i]->name);
+        }
+    
+    //se o ultimo elemento for * mostra todos os arquivos com as iniciais
+    }else if(name[strlen(name)-1] == '*') {
+        for(int i=0; i<diretorioAtual->meta.entryQtde; i++){
+            if(strncmp(diretorioAtual->entries[i]->name, name, strlen(name)-1) == 0){
+                printf("%s\t", diretorioAtual->entries[i]->name);
+            }
+        }
+    
+    //se esta procurando um arquivo especifico
+    }else{
+        int notFound = 1;
+        
+        //se name = ..DOIS/musicas/eletronica
+        //char aux; e passo pro aux tudo antes do / e retiro essa palavra do name
+        //aux = ..DOIS
+        //name = musicas/eletronica
+
+        for(int i=0; i<diretorioAtual->meta.entryQtde; i++){         
+            //if(strcmp(diretorioAtual->entries[i]->name, aux) == 0){
+            //fazer a comparacao do entry[i] com o aux
+            //verificar se name esta vazio, se estiver eh pq esta eh a ultima recursao
+            //se for a ultima recursao, eu mostro todos os itens do diretorio
+            //se nao for a ultima recursao, eu chamo o openDir com o diretorio encontrado
+            //e chamo listDirectory com name = name
+            
+            if(strcmp(diretorioAtual->entries[i]->name, name) == 0){
+                //se encontrou o arquivo, checar se eh dir
+                if(strcmp(diretorioAtual->entries[i]->type, "dir") == 0){
+                    printf("eh diretorio\n");
+                    printf("%s\t", diretorioAtual->entries[i]->name);
+                    //chamar open dir e listar os diretorios dentro do diretorio "name"
+                }else{
+                    printf("%s\t", diretorioAtual->entries[i]->name);
+                }
+                notFound = 0;
+            }
+        }
+        
+        if(notFound == 1){
+            printf("Arquivo ou Diretorio inexistente.");
+        }
     }
+    printf("\n");
 }
+
 
 void showPath(DirChunk* diretorioAtual,Superblock* sb){
     printf("showPath");
 
 }
 
-void listenCommand(char* command,DirChunk* diretorioAtual,Superblock* sb, int blockNum){
-    char** vals = split(command);
-
-    char* type = *(vals + 0);
-    char* source = *(vals + 1);
-    char* destination = *(vals + 2);
-    
-
-    if(strcmp(type,"cd") == 0){
-        changeDirectory(diretorioAtual, sb, source,blockNum);
-    }else if(strcmp(type,"mkdir") == 0){
-        makeDirectory(diretorioAtual, sb, source,blockNum);
-    }else if(strcmp(type,"rm") == 0){
-        rmItem(diretorioAtual, sb, source);
-    }else if(strcmp(type,"cp") == 0){
-        copyItem(diretorioAtual, sb,source, destination);
-    }else if(strcmp(type,"mv") == 0){
-        moveItem(diretorioAtual, sb,source, destination);
-    }else if(strcmp(type,"ls") == 0){
-        listDirectory(diretorioAtual, sb);
-    }else if(strcmp(type,"pwd") == 0){
-        showPath(diretorioAtual, sb);
-    }
-
-}
