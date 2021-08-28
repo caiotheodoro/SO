@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 
+//#include "fatacc.h"
 #include "commands.h"
 
 
@@ -48,11 +49,10 @@ int main(int argc, char* argv[]){
     printf("entry1 %s type %s\n", root->entries[0]->name, root->entries[0]->type);
     printf("entry1 %s type %s\n", root->entries[1]->name, root->entries[1]->type);
     
-    
 
     //  LS:
-    //  entrar no dirchunk diretorioatual
-    //  e listar o nome de cada struct entry do vetor de entries.
+    printf("ls root\n");
+    listenCommand("ls", root, sb, sb->rootPos);
 
     //  CD:
     //  verificar no entry[] do diretorio atual, se o diretorio pretendido eh type="dir"

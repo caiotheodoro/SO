@@ -47,10 +47,6 @@ void help(){
     printf("\tformat dsc\n\n");
 }
 
-
-
-
-
 char** split(char* command)
 {
     char** result    = 0;
@@ -100,35 +96,45 @@ void changeDirectory(DirChunk* diretorioAtual,Superblock* sb,char* name, int blo
   //dirMeta (?)
 
 }
+
 void makeDirectory(DirChunk* diretorioAtual,Superblock* sb,char* name, int blockNum){
   if(blockNum >= sb->blockQtde) return;
   //dirMeta (?)
 
 }
+
 void rmItem(DirChunk* diretorioAtual,Superblock* sb,char* name){
     printf("rmItem");
 //dirMeta (?)
 }
+
 void copyItem(DirChunk* diretorioAtual,Superblock* sb,char* source,char* destation){
     printf("copyItem");
 //dirMeta (?)
 }
+
 void moveItem(DirChunk* diretorioAtual,Superblock* sb,char* source,char* destation){
     printf("moveItem");
-
 }
-void listDirectory(DirChunk* diretorioAtual,Superblock* sb){
-    printf("listDirectory");
 
+void listDirectory(DirChunk* diretorioAtual, Superblock* sb){
+    /*int firstBlock = diretorioAtual->meta.firstBlock;
+    sb.
+    if()*/
+    // lista o conteudo dentro de um diretorio
+    for(int i=0; i<diretorioAtual->meta.entryQtde; i++){
+        printf("%s\n", diretorioAtual->entries[i]->name);
+    }
 }
+
 void showPath(DirChunk* diretorioAtual,Superblock* sb){
     printf("showPath");
 
 }
 
 void listenCommand(char* command,DirChunk* diretorioAtual,Superblock* sb, int blockNum){
-
     char** vals = split(command);
+
     char* type = *(vals + 0);
     char* source = *(vals + 1);
     char* destination = *(vals + 2);
