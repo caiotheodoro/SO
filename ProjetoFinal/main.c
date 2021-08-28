@@ -3,7 +3,6 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "fatacc.h"
 #include "commands.h"
 
 

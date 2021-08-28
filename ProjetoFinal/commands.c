@@ -13,8 +13,11 @@ Pode ser util para o comando "mv"
 */
 
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <assert.h>
+
 #include "commands.h"
-#include "fatacc.h"
 
 void help(){
     printf("Descricao dos comandos:\n\n");
@@ -91,31 +94,6 @@ char** split(char* command)
     return result;
 }
 
-void listenCommand(char* command,DirChunk* diretorioAtual,Superblock* sb, int blockNum){
-
-    char** vals = split(command);
-    char* type = *(vals + 0);
-    char* source = *(vals + 1);
-    char* destination = *(vals + 2);
-    
-
-    if(strcmp(type,"cd") == 0){
-        changeDirectory(diretorioAtual,sb,source,blockNum);
-    }else if(strcmp(type,"mkdir") == 0){
-        makeDirectory(diretorioAtual,sb,source,blockNum);
-    }else if(strcmp(type,"rm") == 0){
-        rmItem(diretorioAtual,sb,source);
-    }else if(strcmp(type,"cp") == 0){
-        copyItem(diretorioAtual,sb,source,destination);
-    }else if(strcmp(type,"mv") == 0){
-        moveItem(diretorioAtual,sb,source,destination);
-    }else if(strcmp(type,"ls") == 0){
-        listDirectory(diretorioAtual,sb);
-    }else if(strcmp(type,"pwd") == 0){
-        showPath(diretorioAtual,sb);
-    }
-
-}
 
 void changeDirectory(DirChunk* diretorioAtual,Superblock* sb,char* name, int blockNum){
   if(blockNum >= sb->blockQtde) return;
@@ -128,18 +106,48 @@ void makeDirectory(DirChunk* diretorioAtual,Superblock* sb,char* name, int block
 
 }
 void rmItem(DirChunk* diretorioAtual,Superblock* sb,char* name){
-
+    printf("rmItem");
 //dirMeta (?)
 }
 void copyItem(DirChunk* diretorioAtual,Superblock* sb,char* source,char* destation){
+    printf("copyItem");
 //dirMeta (?)
 }
 void moveItem(DirChunk* diretorioAtual,Superblock* sb,char* source,char* destation){
+    printf("moveItem");
 
 }
 void listDirectory(DirChunk* diretorioAtual,Superblock* sb){
+    printf("listDirectory");
 
 }
 void showPath(DirChunk* diretorioAtual,Superblock* sb){
+    printf("showPath");
+
+}
+
+void listenCommand(char* command,DirChunk* diretorioAtual,Superblock* sb, int blockNum){
+
+    char** vals = split(command);
+    char* type = *(vals + 0);
+    char* source = *(vals + 1);
+    char* destination = *(vals + 2);
+    
+
+    if(strcmp(type,"cd") == 0){
+        changeDirectory(diretorioAtual, sb, source,blockNum);
+    }else if(strcmp(type,"mkdir") == 0){
+        makeDirectory(diretorioAtual, sb, source,blockNum);
+    }else if(strcmp(type,"rm") == 0){
+        rmItem(diretorioAtual, sb, source);
+    }else if(strcmp(type,"cp") == 0){
+        copyItem(diretorioAtual, sb,source, destination);
+    }else if(strcmp(type,"mv") == 0){
+        moveItem(diretorioAtual, sb,source, destination);
+    }else if(strcmp(type,"ls") == 0){
+        listDirectory(diretorioAtual, sb);
+    }else if(strcmp(type,"pwd") == 0){
+        showPath(diretorioAtual, sb);
+    }
 
 }
