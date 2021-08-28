@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
+ 
 /* ========================== funcoes internas ========================= */
 
 file_chunk* createDirectory(char* name, int freeBlock, DirMeta* fatherMeta);

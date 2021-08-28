@@ -41,7 +41,7 @@ int main(int argc, char* argv[]){
 
     // READ_ROOT
     // DirChunk* diretorioAtual = facc_loadRoot(sb, fat);
-
+ 
     DirChunk* root = facc_loadRoot(sb, fat);
 
     printf("meta %s fblock %d, bytes %d, entryQtde %d\n", root->meta.name, root->meta.firstBlock, root->meta.bytes, root->meta.entryQtde);

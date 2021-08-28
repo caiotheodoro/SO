@@ -13,10 +13,12 @@ Pode ser util para o comando "mv"
 */
 
 #include <stdio.h>
+#include "commands.h"
+#include "fatacc.h"
 
 void help(){
     printf("Descricao dos comandos:\n\n");
-
+ 
     printf("cd - Acessa um diretorio\n");
     printf("\tcd <dir>\n\tcd /caminho/nome\n\n");
 
@@ -42,3 +44,102 @@ void help(){
     printf("\tformat dsc\n\n");
 }
 
+
+
+
+
+char** split(char* command)
+{
+    char** result    = 0;
+    size_t count     = 0;
+    char delimiter = ' ';
+    char* tmp  = command;
+    char* last_comma = 0;
+    char delim[2];
+    delim[0] = delimiter;
+    delim[1] = 0;
+
+    /* Count how many elements will be extracted. */
+    while (*tmp)
+    {
+        if (delimiter == *tmp)
+        {
+            count++;
+            last_comma = tmp;
+        }
+        tmp++;
+    }
+    count += last_comma < (command + strlen(command) - 1);
+    count++;
+    result = malloc(sizeof(char*) * count);
+
+    if (result)
+    {
+        size_t idx  = 0;
+        char* token = strtok(command, delim);
+
+        while (token)
+        {
+            assert(idx < count);
+            *(result + idx++) = strdup(token);
+            token = strtok(0, delim);
+        }
+        assert(idx == count - 1);
+        *(result + idx) = 0;
+    }
+
+    return result;
+}
+
+void listenCommand(char* command,DirChunk* diretorioAtual,Superblock* sb, int blockNum){
+
+    char** vals = split(command);
+    char* type = *(vals + 0);
+    char* source = *(vals + 1);
+    char* destination = *(vals + 2);
+    
+
+    if(strcmp(type,"cd") == 0){
+        changeDirectory(diretorioAtual,sb,source,blockNum);
+    }else if(strcmp(type,"mkdir") == 0){
+        makeDirectory(diretorioAtual,sb,source,blockNum);
+    }else if(strcmp(type,"rm") == 0){
+        rmItem(diretorioAtual,sb,source);
+    }else if(strcmp(type,"cp") == 0){
+        copyItem(diretorioAtual,sb,source,destination);
+    }else if(strcmp(type,"mv") == 0){
+        moveItem(diretorioAtual,sb,source,destination);
+    }else if(strcmp(type,"ls") == 0){
+        listDirectory(diretorioAtual,sb);
+    }else if(strcmp(type,"pwd") == 0){
+        showPath(diretorioAtual,sb);
+    }
+
+}
+
+void changeDirectory(DirChunk* diretorioAtual,Superblock* sb,char* name, int blockNum){
+  if(blockNum >= sb->blockQtde) return;
+  //dirMeta (?)
+
+}
+void makeDirectory(DirChunk* diretorioAtual,Superblock* sb,char* name, int blockNum){
+  if(blockNum >= sb->blockQtde) return;
+  //dirMeta (?)
+
+}
+void rmItem(DirChunk* diretorioAtual,Superblock* sb,char* name){
+
+//dirMeta (?)
+}
+void copyItem(DirChunk* diretorioAtual,Superblock* sb,char* source,char* destation){
+//dirMeta (?)
+}
+void moveItem(DirChunk* diretorioAtual,Superblock* sb,char* source,char* destation){
+
+}
+void listDirectory(DirChunk* diretorioAtual,Superblock* sb){
+
+}
+void showPath(DirChunk* diretorioAtual,Superblock* sb){
+
+}
