@@ -18,7 +18,8 @@ Pode ser util para o comando "mv"
 #include <assert.h>
 
 #include "commands.h"
-void help(){
+
+void help(){ // Função que imprime a ajuda
     printf("Descricao dos comandos:\n\n");
  
     printf("cd - Acessa um diretorio\n");
@@ -54,23 +55,23 @@ void removeItem(Superblock* sb, Fat* fat, DirChunk* diretorioAtual,  char* name)
     }
 
     int notFound = 1;
-    for(int i=0; i<diretorioAtual->meta.entryQtde; i++){
-        if(strcmp(diretorioAtual->entries[i]->name, name) == 0){
+    for(int i=0; i<diretorioAtual->meta.entryQtde; i++){// Percorre o diretorio
+        if(strcmp(diretorioAtual->entries[i]->name, name) == 0){// Se encontrar o arquivo
 
             //se encontrei arquivo e eh um dir
             if(strcmp(diretorioAtual->entries[i]->type, "dir") == 0){
 
-                int firstBlock = diretorioAtual->entries[i]->firstBlock;
-                DirChunk* auxDir = facc_loadDir(sb, fat, firstBlock);
+                int firstBlock = diretorioAtual->entries[i]->firstBlock;// pega o primeiro bloco do diretorio
+                DirChunk* auxDir = facc_loadDir(sb, fat, firstBlock); // carrega o diretorio
 
-                if(auxDir->meta.entryQtde > 2){
+                if(auxDir->meta.entryQtde > 2){ // Se o diretorio nao esta vazio
                     printf("Nao eh possivel deletar '%s': Diretorio nao vazio.\n", name);
                 
-                }else{
-                    facc_updateDirDel(sb, fat, diretorioAtual, i);
+                }else{ // Se o diretorio esta vazio
+                    facc_updateDirDel(sb, fat, diretorioAtual, i); // remove o diretorio do diretorio atual
                 }
 
-                facc_unloadDirectory(auxDir);
+                facc_unloadDirectory(auxDir); // desaloca o diretorio auxiliar
                 notFound = 0;
                 break;
             
@@ -89,81 +90,80 @@ void removeItem(Superblock* sb, Fat* fat, DirChunk* diretorioAtual,  char* name)
 }
 
 
-DirChunk* changeDirectory(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, char* name, char* pathing){
+DirChunk* changeDirectory(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, char* name, char* pathing){ 
     DirChunk* novoDir;
     int notFound = 1;
     
-    for(int i=0; i<diretorioAtual->meta.entryQtde; i++){ 
-        if(strcmp(diretorioAtual->entries[i]->name, name) == 0){
-            if(strcmp(diretorioAtual->entries[i]->type, "dir") == 0){
-                int firstBlock = diretorioAtual->entries[i]->firstBlock;
-                facc_unloadDirectory(diretorioAtual);
-                novoDir = facc_loadDir(sb, fat, firstBlock);
-                notFound = 0;
+    for(int i=0; i<diretorioAtual->meta.entryQtde; i++){  // Percorre o diretorio
+        if(strcmp(diretorioAtual->entries[i]->name, name) == 0){ // Se encontrar o arquivo
+            if(strcmp(diretorioAtual->entries[i]->type, "dir") == 0){ // Se encontrar um diretorio (tipo dir)
+                int firstBlock = diretorioAtual->entries[i]->firstBlock; // pega o primeiro bloco do diretorio
+                facc_unloadDirectory(diretorioAtual); // desaloca o diretorio atual
+                novoDir = facc_loadDir(sb, fat, firstBlock); // carrega o diretorio
+                notFound = 0; 
                 break;
             }
         }
     }
     
-    if(notFound == 1){
-        printf("Diretorio nao encontrado\n");
-        return diretorioAtual;
+    if(notFound == 1){ // Se nao encontrar o diretorio
+        printf("Diretorio nao encontrado\n"); // imprime mensagem de erro
+        return diretorioAtual; // retorna o diretorio atual (proprio diretorio)
     }
     
-    if(strcmp(name,"..")== 0){
-        int size = strlen(pathing);
-        while(size>=0){
-            if(pathing[size] == '/'){
-                pathing[size] = '\0';
-                break;
+    if(strcmp(name,"..")== 0){ // Se o diretorio for o diretorio pai
+        int size = strlen(pathing); // pega o tamanho do caminho
+        while(size>=0){ // percorre o caminho
+            if(pathing[size] == '/'){ // se encontrar um '/'
+                pathing[size] = '\0'; // corta o caminho
+                break; // para de percorrer o caminho
             }
-            size--;
+            size--; 
         }
-    }else if(strcmp(name, ".") == 0){
+    }else if(strcmp(name, ".") == 0){ // Se o diretorio for o diretorio atual
         //faz nada
-    }else{
-        strcat(pathing, "/");
-        strcat(pathing, novoDir->meta.name);
+    }else{ 
+        strcat(pathing, "/"); // concatena o caminho com "/"
+        strcat(pathing, novoDir->meta.name); // concatena o caminho com o nome do diretorio
     }
     //pwd path
 
-    return novoDir;
+    return novoDir; // retorna o novo diretorio
 }
 
 void makeDirectory(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, char* name){
         //checar se ja existe diretorio com este nome
-        for(int i=0; i<diretorioAtual->meta.entryQtde; i++){
-            if(strcmp(diretorioAtual->entries[i]->name, name) == 0){
+        for(int i=0; i<diretorioAtual->meta.entryQtde; i++){ // Percorre o diretorio
+            if(strcmp(diretorioAtual->entries[i]->name, name) == 0){ // Se encontrar o arquivo
                 printf("Erro, ja existe um diretorio com este nome\n");
                 return;
             }
         }
 
         //Encontro um bloco livre
-        int blockNum = facc_findFreeBlock(sb, fat);
-        if(blockNum < 0){
+        int blockNum = facc_findFreeBlock(sb, fat); // pega o primeiro bloco livre
+        if(blockNum < 0){ // Se nao encontrar bloco livre
             printf("Erro, o disco esta cheio!\n");
             return;
         }
         
         //Crio um diretorio e guardo no disco
-        file_chunk* newDir = createDirectory(name, blockNum, &diretorioAtual->meta);
-        writeBlock(sb, blockNum, newDir->file, newDir->bytes);
-        updateFat(sb, fat, blockNum, FAT_L);
+        file_chunk* newDir = createDirectory(name, blockNum, &diretorioAtual->meta); // cria um diretorio
+        writeBlock(sb, blockNum, newDir->file, newDir->bytes); // escreve o diretorio no disco
+        updateFat(sb, fat, blockNum, FAT_L); // atualiza o FAT
 
         //criando a referencia pro diretorio
-        Entry* ref = (Entry*)malloc(sizeof(Entry));
+        Entry* ref = (Entry*)malloc(sizeof(Entry)); // cria um novo entry
 
         int nameSize = strlen(name)>7 ? 7:strlen(name); //verifica se name tem mais que 7 caracteres
         strncpy(ref->name, name, nameSize); //copia no maximo 7 caracteres
         ref->name[nameSize] = '\0'; //adiciona final de string ao final do nome.
         
-        ref->firstBlock = blockNum;
-        strcpy(ref->type, "dir");        
-        
+        ref->firstBlock = blockNum; // atribui o bloco do diretorio
+        strcpy(ref->type, "dir");        // atribui o tipo do diretorio
         
         //crio a referencia (entry) do novoDir dentro do diretorioatual
-        facc_updateDirAdd(sb, fat, diretorioAtual, ref);
+        facc_updateDirAdd(sb, fat, diretorioAtual, ref); 
 }
 
 void rmItem(DirChunk* diretorioAtual,Superblock* sb,char* name){
@@ -187,10 +187,10 @@ void moveItem(DirChunk* diretorioAtual,Superblock* sb,char* source,char* destati
 }
 
 char* createPathing(){
-    char* path = (char*) malloc (sizeof(char)*250);
-    strcpy(path,"~root");
+    char* path = (char*) malloc (sizeof(char)*250); //aloca memoria para o path
+    strcpy(path,"~root"); //copia o path inicial
 
-    return path;
+    return path; //retorna o path
 }
 
 void listDirectory(DirChunk* diretorioAtual, char* name){
@@ -254,14 +254,14 @@ void listDirectory(DirChunk* diretorioAtual, char* name){
 
 
 void showPath(char* pathing){
-    printf("%s\n", pathing);
+    printf("%s\n", pathing); //mostra o path
 }
 
 void format_dsc(int blockQtde){
-    if(blockQtde < 4){
+    if(blockQtde < 4){ //se o numero de blocos for menor que 4, nao eh possivel formatar
         printf("Entrada inválida, a quantidade de blocos deve possuir ao menos 3 blocos (sb, fat, root)\n");
         return;
     }
     
-    facc_format(4096, blockQtde);
+    facc_format(4096, blockQtde); //formata o disco
 }
