@@ -21,7 +21,6 @@ int main(int argc, char* argv[]){
     if(access(DISCO, F_OK) == 0){                   
         while(1){
             printf("Já existe um disco, deseja formata-lo? [y, n]\n");
-            printf(" > y - manter\n > n - formatar\n");
             fgets(command, sizeof(command), stdin); 
 
             if(strncmp(command, "y", 1) == 0){
