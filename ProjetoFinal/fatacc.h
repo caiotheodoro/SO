@@ -91,7 +91,11 @@ void facc_updateDirAdd(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, Entry
 void facc_unloadDirectory(DirChunk* dir);
 int facc_findFreeBlock(Superblock* sb, Fat* fat);
 
+/* ========================== funcoes internas (usadas fora xd)========================= */
 file_chunk* createDirectory(char* name, int freeBlock, DirMeta* fatherMeta);
+void writeBlock(Superblock* sb, int blockNum, void* buffer, int bufferSize);
+void updateFat(Superblock* sb, Fat* fat, int pos, int nextPos);
+/* ========================== funcoes internas ========================= */
 
 
 

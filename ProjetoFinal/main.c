@@ -32,11 +32,11 @@ int main(int argc, char* argv[]){
     char* pathing = createPathing();
         // if(strncmp(command, "exit", 4)) break;
     // while(1){
-        printf("(%s) $ > ",pathing);
+        printf("(%s)$ > ",pathing);
         fgets(command, sizeof(command), stdin);        
         listenCommand(sb, fat, diretorioAtual, command,pathing);
         
-        printf("(%s) $ > ",pathing);
+        printf("(%s)$ > ",pathing);
         fgets(command, sizeof(command), stdin);        
         listenCommand(sb, fat, diretorioAtual, command,pathing);
     // }

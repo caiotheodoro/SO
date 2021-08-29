@@ -7,9 +7,10 @@
 /* ========================== funcoes internas ========================= */
 
 
-void writeBlock(Superblock* sb, int blockNum, void* buffer, int bufferSize);
+// file_chunk* createDirectory(char* name, int freeBlock, DirMeta* fatherMeta);
+// void writeBlock(Superblock* sb, int blockNum, void* buffer, int bufferSize);
+// void updateFat(Superblock* sb, Fat* fat, int pos, int nextPos);
 file_t* readBlock(Superblock* sb, int blockNum, int bufferSize);
-void updateFat(Superblock* sb, Fat* fat, int pos, int nextPos);
 file_chunk* openDir(Superblock* sb, Fat* fat, int firstBlock);
 void updateDirectory(Superblock* sb, Fat* fat, DirChunk* directory);
 void deleteFile(Superblock* sb, Fat* fat, int firstBlock);
@@ -193,7 +194,7 @@ void updateDirectory(Superblock* sb, Fat* fat, DirChunk* directory){
     //crio um file_t contendo as informacoes do DirChunk
     fc->file = (file_t*)malloc(fc->bytes * sizeof(char));
     memcpy(fc->file, &directory->meta, sizeof(DirMeta));
-    for(int i=0; i<directory->entries; i++){
+    for(int i=0; i<directory->meta.entryQtde; i++){
         memcpy(fc->file+sizeof(DirMeta)+(i*sizeof(Entry)), directory->entries[i], sizeof(Entry));
     }
     
@@ -224,7 +225,7 @@ void saveFile(Superblock* sb, Fat* fat, file_chunk* fc, int block){
         
         //update das variaveis de controle
         i++;
-        block = facc_findFreeBlock;
+        block = facc_findFreeBlock(sb, fat);
         bytes = bytes - sb->blockSize;
     }
 }
