@@ -166,17 +166,6 @@ void makeDirectory(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, char* nam
         facc_updateDirAdd(sb, fat, diretorioAtual, ref); 
 }
 
-void rmItem(DirChunk* diretorioAtual,Superblock* sb,char* name){
-    
-
-    //no diretorioatual tu tem q achar a entrada doq tu quer remover
-    //ai tu vai na FAT, e faz o caminho que a lista encadeada de leva, setando todos pra FAT_F
-
-    
-    printf("rmItem");
-//dirMeta (?)
-}
-
 void copyItem(DirChunk* diretorioAtual,Superblock* sb,char* source,char* destation){
     printf("copyItem");
 //dirMeta (?)
@@ -194,8 +183,8 @@ char* createPathing(){
 }
 
 void listDirectory(DirChunk* diretorioAtual, char* name){
-    //se nao ha segundo parametro
-    if(name == NULL){
+   
+    if(name == NULL){   //se nao ha segundo parametro
         for(int i=0; i<diretorioAtual->meta.entryQtde; i++){
             if(strcmp(diretorioAtual->entries[i]->type, "dir") == 0){
                 printf("%s\t", diretorioAtual->entries[i]->name);
@@ -204,8 +193,7 @@ void listDirectory(DirChunk* diretorioAtual, char* name){
             }
         }
     
-    //se o ultimo elemento for * mostra todos os arquivos com as iniciais
-    }else if(name[strlen(name)-1] == '*') {
+    }else if(name[strlen(name)-1] == '*') {    //se o ultimo elemento for * mostra todos os arquivos com as iniciais
         for(int i=0; i<diretorioAtual->meta.entryQtde; i++){
             if(strncmp(diretorioAtual->entries[i]->name, name, strlen(name)-1) == 0){
                 if(strcmp(diretorioAtual->entries[i]->type, "dir") == 0){
@@ -216,8 +204,7 @@ void listDirectory(DirChunk* diretorioAtual, char* name){
             }
         }
     
-    //se esta procurando um arquivo especifico
-    }else{
+    }else{    //se esta procurando um arquivo especifico
         int notFound = 1;
         
         //se name = ..DOIS/musicas/eletronica
@@ -234,11 +221,10 @@ void listDirectory(DirChunk* diretorioAtual, char* name){
             //e chamo listDirectory com name = name
             
             if(strcmp(diretorioAtual->entries[i]->name, name) == 0){
-                //se encontrou o arquivo, checar se eh dir
-                if(strcmp(diretorioAtual->entries[i]->type, "dir") == 0){
+                if(strcmp(diretorioAtual->entries[i]->type, "dir") == 0){    //se encontrou o arquivo, checar se eh dir
                     printf("%s\t", diretorioAtual->entries[i]->name);
                     //chamar open dir e listar os diretorios dentro do diretorio "name"
-                }else{
+                }else{    //se não eh diretorio, lista as informacoes do arquivo (nome)
                     printf("%s.%s\t", diretorioAtual->entries[i]->name, diretorioAtual->entries[i]->type);
                 }
                 notFound = 0;
@@ -251,7 +237,6 @@ void listDirectory(DirChunk* diretorioAtual, char* name){
     }
     printf("\n");
 }
-
 
 void showPath(char* pathing){
     printf("%s\n", pathing); //mostra o path

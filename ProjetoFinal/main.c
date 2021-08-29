@@ -70,15 +70,6 @@ int main(int argc, char* argv[]){
     return 0; 
 }
 
-// int main(int argc, char* argv[]){
-//     //CHECA SE EXISTE DISCO.TXT
-//     if(access(DISCO, F_OK) == 0){                   //arquivo existe
-//         printf("Disco carregado com sucesso!\n");
-//     }else{                                          //arquivo nao existe
-//         facc_format(BLOCKSIZE, BLOCKQTDE);
-//         printf("Disco criado.\n");
-//     }
-
 /*
 ========================================================================================================
 ========================================================================================================
@@ -124,10 +115,10 @@ void listenCommand(Superblock** sb, Fat** fat, DirChunk** diretorioAtual, char* 
             return;
         }
         removeItem(*sb, *fat, *diretorioAtual, source);      
-    }else if(strcmp(type,"cp") == 0){
+    }else if(strcmp(cmd,"cp") == 0){
          copyItem(*diretorioAtual, *sb,source, destination);
 
-     }else if(strcmp(type,"mv") == 0){ //se a primeira palavra for mv
+     }else if(strcmp(cmd,"mv") == 0){ //se a primeira palavra for mv
          moveItem(*diretorioAtual, *sb,source, destination); //move o item (diretorio ou arquivo)
 
     }else if(strcmp(cmd, "ls") == 0){ //se a primeira palavra for ls
@@ -155,7 +146,6 @@ void listenCommand(Superblock** sb, Fat** fat, DirChunk** diretorioAtual, char* 
     }else{ //se nao for nenhuma das opcoes
         printf("Comando '%s' não encontrado, digite 'help' para ver os comandos disponíveis.\n", cmd);
     }
-
 }
 
 char** split(char* command){
@@ -192,8 +182,6 @@ char** split(char* command){
         assert(idx == count - 1); //se o indice for diferente do contador, algo de errado aconteceu
         *(result + idx) = 0; //faz o fim da string
     }
+    
     return result; //retorna o resultado
 }
-
-
-
