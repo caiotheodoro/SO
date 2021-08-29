@@ -257,8 +257,11 @@ void showPath(char* pathing){
     printf("%s\n", pathing);
 }
 
-int format_dsc(int blockQtde){
-    if(blockQtde < 4) return 0;
+void format_dsc(int blockQtde){
+    if(blockQtde < 4){
+        printf("Entrada inválida, a quantidade de blocos deve possuir ao menos 3 blocos (sb, fat, root)\n");
+        return;
+    }
     
     facc_format(4096, blockQtde);
 }
