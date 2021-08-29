@@ -6,11 +6,14 @@
  
 /* ========================== funcoes internas ========================= */
 
-file_chunk* createDirectory(char* name, int freeBlock, DirMeta* fatherMeta);
+
 void writeBlock(Superblock* sb, int blockNum, void* buffer, int bufferSize);
 file_t* readBlock(Superblock* sb, int blockNum, int bufferSize);
 void updateFat(Superblock* sb, Fat* fat, int pos, int nextPos);
 file_chunk* openDir(Superblock* sb, Fat* fat, int firstBlock);
+void updateDirectory(Superblock* sb, Fat* fat, DirChunk* directory);
+void deleteFile(Superblock* sb, Fat* fat, int firstBlock);
+void saveFile(Superblock* sb, Fat* fat, file_chunk* fc, int block);
 
 /* ===================================================================== */
 
@@ -75,11 +78,11 @@ void facc_format(int blockSize, int blockQtde){
 }
 
 
-Superblock* facc_loadSuperblock(int blockSize, int blockQtde){
+Superblock* facc_loadSuperblock(){
     //superblock que sera retornado
     Superblock* sb = (Superblock*)malloc(sizeof(Superblock));
-    sb->blockSize = blockSize;
-    sb->blockQtde = blockQtde;
+    sb->blockSize = 512; //valores estaticos para poder usar no readBlock
+    sb->blockQtde = 1;
 
     //read superblock do arquivo
     file_t* tmp = readBlock(sb, 0, sizeof(Superblock));
@@ -102,11 +105,11 @@ Fat* facc_loadFat(Superblock* sb){
     return fat;
 }
 
-DirChunk* facc_loadRoot(Superblock* sb, Fat* fat){
+DirChunk* facc_loadDir(Superblock* sb, Fat* fat, int firstBlock){
     DirChunk* directory = (DirChunk*)malloc(sizeof(DirChunk));
 
     //abrir arquivo
-    file_chunk* fc = openDir(sb, fat, sb->rootPos);
+    file_chunk* fc = openDir(sb, fat, firstBlock);
     if(fc == NULL){
         printf("Erro ao abrir diretorio\n");
         return NULL;
@@ -138,12 +141,108 @@ void facc_unloadDirectory(DirChunk* dir){
     free(dir);
 }
 
+int facc_findFreeBlock(Superblock* sb, Fat* fat){
+    for(int i=3; i < sb->blockQtde; i++){
+        if(fat[i] == FAT_F){
+            return i;
+        }
+    }
+    return -1;
+}
+
+void facc_updateDirAdd(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, Entry* ref){
+     //criando vetor de entries
+    Entry** newEntries = (Entry**)malloc(sizeof(Entry*) * (diretorioAtual->meta.entryQtde+1));
+    
+    //adiciono as entradas do dir->entries para o newEntries
+    int i = 0;
+    while(i<diretorioAtual->meta.entryQtde){
+        newEntries[i] = diretorioAtual->entries[i];
+        i++;
+    }
+
+    //adiciono a nova entrada no newEntries
+    newEntries[i] = ref;
+
+    //coloco o NewEntries no lugar do antigo entries
+    free(diretorioAtual->entries);
+    diretorioAtual->entries = newEntries;
+    
+    //coloco no meta que foi adicionado mais um diretorio
+    diretorioAtual->meta.entryQtde++;
+
+    updateDirectory(sb, fat, diretorioAtual);
+}
+
 /*
 ========================================================================================================
 ========================================================================================================
 ========================================================================================================
 ========================================================================================================
 */
+
+void updateDirectory(Superblock* sb, Fat* fat, DirChunk* directory){
+    //removo o antigo da memoria
+    int firstBlock = directory->meta.firstBlock;
+    deleteFile(sb, fat, firstBlock);
+
+    //Criando chunk com o file_t e controle de bytes
+    file_chunk* fc = (file_chunk*)malloc(sizeof(file_chunk));
+    fc->bytes = sizeof(DirMeta) + sizeof(Entry)*directory->meta.entryQtde;
+
+    //crio um file_t contendo as informacoes do DirChunk
+    fc->file = (file_t*)malloc(fc->bytes * sizeof(char));
+    memcpy(fc->file, &directory->meta, sizeof(DirMeta));
+    for(int i=0; i<directory->entries; i++){
+        memcpy(fc->file+sizeof(DirMeta)+(i*sizeof(Entry)), directory->entries[i], sizeof(Entry));
+    }
+    
+    //coloco no disco o file_t
+    saveFile(sb, fat, fc, firstBlock);
+}
+
+void saveFile(Superblock* sb, Fat* fat, file_chunk* fc, int block){
+    int bytes = fc->bytes;
+    int i = 0;
+    int lastBlock = -1;
+
+    while(bytes > 0){
+        //escrevo o bloco na memoria
+        int bufferSize = (bytes > sb->blockSize) ? sb->blockSize : bytes;
+        writeBlock(sb, block, fc->file + (i * sb->blockSize), bufferSize);
+        
+        // Faco com que o bloco anterior aponte para este bloco
+        if(lastBlock != -1){
+            updateFat(sb, fat, lastBlock, block);
+        }
+
+        //faco com que este bloco esteja ocupado e receba status de ultimo
+        updateFat(sb, fat, block, FAT_L);
+
+        //atualizo o ultimo bloco pra proxima iteracao
+        lastBlock = block;
+        
+        //update das variaveis de controle
+        i++;
+        block = facc_findFreeBlock;
+        bytes = bytes - sb->blockSize;
+    }
+}
+
+void deleteFile(Superblock* sb, Fat* fat, int firstBlock){
+    
+    int block = firstBlock;
+    int aux = block;
+
+    do{
+        if(fat[block] == FAT_B || fat[block] == FAT_F) return; // erro
+
+        block = fat[block];
+        
+        fat[aux] = FAT_F;
+        aux = block;
+    }while(block != FAT_L);
+}
 
 file_chunk* openDir(Superblock* sb, Fat* fat, int firstBlock){
     if(firstBlock < 0 || firstBlock >= sb->blockQtde) return NULL;
@@ -207,12 +306,12 @@ file_chunk* createDirectory(char* name, int freeBlock, DirMeta* fatherMeta){
     meta.firstBlock = freeBlock;
     
     // .
-    strcpy(entries[0].name, ".UM");
+    strcpy(entries[0].name, ".");
     strcpy(entries[0].type, "dir");
     entries[0].firstBlock = meta.firstBlock;
 
     // ..
-    strcpy(entries[1].name, "..DOIS");
+    strcpy(entries[1].name, "..");
     strcpy(entries[1].type, "dir");
     entries[1].firstBlock = fatherMeta->firstBlock;
 
@@ -224,6 +323,7 @@ file_chunk* createDirectory(char* name, int freeBlock, DirMeta* fatherMeta){
     fc->file = (file_t*)malloc(meta.bytes*sizeof(char));
     memcpy(fc->file, &meta, sizeof(DirMeta));
     memcpy(fc->file+sizeof(DirMeta), &entries, sizeof(Entry)*meta.entryQtde);
+    
     return fc;
 }
 

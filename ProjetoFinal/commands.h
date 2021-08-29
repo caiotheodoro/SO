@@ -1,14 +1,13 @@
 #include "fatacc.h"
 
+
 void help();
-
-// void listenCommand(char* command, DirChunk* diretorioAtual, Superblock* sb, int blockNum);
-
-// char** split(char* command);
-// void changeDirectory(DirChunk* diretorioAtual, Superblock* sb, char* name, int blockNum);
-// void makeDirectory(DirChunk* diretorioAtual, Superblock* sb, char* name, int blockNum);
+char* createPathing();
+DirChunk* changeDirectory(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, char* name,char* pathing);
+void makeDirectory(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, char* name);
 // void rmItem(DirChunk* diretorioAtual, Superblock* sb, char* name);
 // void copyItem(DirChunk* diretorioAtual, Superblock* sb, char* source, char* destation);
 // void moveItem(DirChunk* diretorioAtual, Superblock* sb, char* source, char* destation);
 void listDirectory(DirChunk* diretorioAtual, char* name);
-// void showPath(DirChunk* diretorioAtual,Superblock* sb);
+int format_dsc(int blockQtde);
+void showPath(char* pathing);

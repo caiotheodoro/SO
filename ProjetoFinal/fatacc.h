@@ -81,12 +81,17 @@ typedef struct{
 /* ============================================================= */
 
 void facc_format(int blockSize, int blockQtde);
-Superblock* facc_loadSuperblock(int blockSize, int blockQtde);
+Superblock* facc_loadSuperblock();
 Fat* facc_loadFat(Superblock* sb);
 
-DirChunk* facc_loadRoot(Superblock* sb, Fat* fat);
-//DirChunk* facc_loadDirectory(Superblock* sb, Fat* fat);
+DirChunk* facc_loadDir(Superblock* sb, Fat* fat, int firstBlock);
+
+void facc_updateDirAdd(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, Entry* ref);
+
 void facc_unloadDirectory(DirChunk* dir);
+int facc_findFreeBlock(Superblock* sb, Fat* fat);
+
+file_chunk* createDirectory(char* name, int freeBlock, DirMeta* fatherMeta);
 
 
 

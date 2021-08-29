@@ -18,7 +18,6 @@ Pode ser util para o comando "mv"
 #include <assert.h>
 
 #include "commands.h"
-
 void help(){
     printf("Descricao dos comandos:\n\n");
  
@@ -44,25 +43,94 @@ void help(){
     printf("\tpwd\n\n");
 
     printf("format dsc - Formata o disco simulado\n");
-    printf("\tformat dsc\n\n");
+    printf("\tformat dsc <num blocks>\n\n");
 }
 
 
+DirChunk* changeDirectory(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, char* name, char* pathing){
+    DirChunk* novoDir;
+    int notFound = 1;
+    
+    for(int i=0; i<diretorioAtual->meta.entryQtde; i++){ 
+        if(strcmp(diretorioAtual->entries[i]->name, name) == 0){
+            if(strcmp(diretorioAtual->entries[i]->type, "dir") == 0){
+                int firstBlock = diretorioAtual->entries[i]->firstBlock;
+                facc_unloadDirectory(diretorioAtual);
+                novoDir = facc_loadDir(sb, fat, firstBlock);
+                notFound = 0;
+                break;
+            }
+        }
+    }
+    
+    if(notFound == 1){
+        printf("Diretorio nao encontrado\n");
+        return diretorioAtual;
+    }
+    
+    if(strcmp(name,"..")== 0){
+        int size = strlen(pathing);
+        while(size>=0){
+            if(pathing[size] == '/'){
+                pathing[size] = '\0';
+                break;
+            }
+            size--;
+        }
+    }else if(strcmp(name, ".") == 0){
+        //faz nada
+    }else{
+        strcat(pathing, "/");
+        strcat(pathing, novoDir->meta.name);
+    }
+    //pwd path
 
-
-void changeDirectory(DirChunk* diretorioAtual,Superblock* sb,char* name, int blockNum){
-  if(blockNum >= sb->blockQtde) return;
-  //dirMeta (?)
-
+    return novoDir;
 }
 
-void makeDirectory(DirChunk* diretorioAtual,Superblock* sb,char* name, int blockNum){
-  if(blockNum >= sb->blockQtde) return;
-  //dirMeta (?)
+void makeDirectory(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, char* name){
+        //checar se ja existe diretorio com este nome
+        for(int i=0; i<diretorioAtual->meta.entryQtde; i++){
+            if(strcmp(diretorioAtual->entries[i]->name, name) == 0){
+                printf("Erro, ja existe um diretorio com este nome\n");
+                return;
+            }
+        }
 
+        //Encontro um bloco livre
+        int blockNum = facc_findFreeBlock(sb, fat);
+        if(blockNum < 0){
+            printf("Erro, o disco esta cheio!\n");
+            return;
+        }
+        
+        //Crio um diretorio e guardo no disco
+        file_chunk* newDir = createDirectory(name, blockNum, &diretorioAtual->meta);
+        writeBlock(sb, blockNum, newDir->file, newDir->bytes);
+        updateFat(sb, fat, blockNum, FAT_L);
+
+        //criando a referencia pro diretorio
+        Entry* ref = (Entry*)malloc(sizeof(Entry));
+
+        int nameSize = strlen(name)>7 ? 7:strlen(name); //verifica se name tem mais que 7 caracteres
+        strncpy(ref->name, name, nameSize); //copia no maximo 7 caracteres
+        ref->name[nameSize] = '\0'; //adiciona final de string ao final do nome.
+        
+        ref->firstBlock = blockNum;
+        strcpy(ref->type, "dir");        
+        
+        
+        //crio a referencia (entry) do novoDir dentro do diretorioatual
+        facc_updateDirAdd(sb, fat, diretorioAtual, ref);
 }
 
 void rmItem(DirChunk* diretorioAtual,Superblock* sb,char* name){
+    
+
+    //no diretorioatual tu tem q achar a entrada doq tu quer remover
+    //ai tu vai na FAT, e faz o caminho que a lista encadeada de leva, setando todos pra FAT_F
+
+    
     printf("rmItem");
 //dirMeta (?)
 }
@@ -76,18 +144,33 @@ void moveItem(DirChunk* diretorioAtual,Superblock* sb,char* source,char* destati
     printf("moveItem");
 }
 
+char* createPathing(){
+    char* path = (char*) malloc (sizeof(char)*250);
+    strcpy(path,"~root");
+
+    return path;
+}
+
 void listDirectory(DirChunk* diretorioAtual, char* name){
     //se nao ha segundo parametro
     if(name == NULL){
         for(int i=0; i<diretorioAtual->meta.entryQtde; i++){
-            printf("%s\t", diretorioAtual->entries[i]->name);
+            if(strcmp(diretorioAtual->entries[i]->type, "dir") == 0){
+                printf("%s\t", diretorioAtual->entries[i]->name);
+            }else{
+                printf("%s.%s\t", diretorioAtual->entries[i]->name, diretorioAtual->entries[i]->type);
+            }
         }
     
     //se o ultimo elemento for * mostra todos os arquivos com as iniciais
     }else if(name[strlen(name)-1] == '*') {
         for(int i=0; i<diretorioAtual->meta.entryQtde; i++){
             if(strncmp(diretorioAtual->entries[i]->name, name, strlen(name)-1) == 0){
-                printf("%s\t", diretorioAtual->entries[i]->name);
+                if(strcmp(diretorioAtual->entries[i]->type, "dir") == 0){
+                    printf("%s\t", diretorioAtual->entries[i]->name);
+                }else{
+                    printf("%s.%s\t", diretorioAtual->entries[i]->name, diretorioAtual->entries[i]->type);
+                }
             }
         }
     
@@ -111,11 +194,10 @@ void listDirectory(DirChunk* diretorioAtual, char* name){
             if(strcmp(diretorioAtual->entries[i]->name, name) == 0){
                 //se encontrou o arquivo, checar se eh dir
                 if(strcmp(diretorioAtual->entries[i]->type, "dir") == 0){
-                    printf("eh diretorio\n");
                     printf("%s\t", diretorioAtual->entries[i]->name);
                     //chamar open dir e listar os diretorios dentro do diretorio "name"
                 }else{
-                    printf("%s\t", diretorioAtual->entries[i]->name);
+                    printf("%s.%s\t", diretorioAtual->entries[i]->name, diretorioAtual->entries[i]->type);
                 }
                 notFound = 0;
             }
@@ -129,8 +211,13 @@ void listDirectory(DirChunk* diretorioAtual, char* name){
 }
 
 
-void showPath(DirChunk* diretorioAtual,Superblock* sb){
-    printf("showPath");
+void showPath(char* pathing){
+    printf("%s\n", pathing);
 
 }
 
+int format_dsc(int blockQtde){
+    if(blockQtde < 4) return 0;
+    
+    facc_format(4096, blockQtde);
+}
