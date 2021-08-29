@@ -47,6 +47,48 @@ void help(){
 }
 
 
+void removeItem(Superblock* sb, Fat* fat, DirChunk* diretorioAtual,  char* name){
+    if(strcmp(name, ".") == 0 || strcmp(name, "..") == 0 ){
+        printf("Nao e possivel excluir o diretorio de referencia '%s'.\n", name);
+        return;
+    }
+
+    int notFound = 1;
+    for(int i=0; i<diretorioAtual->meta.entryQtde; i++){
+        if(strcmp(diretorioAtual->entries[i]->name, name) == 0){
+
+            //se encontrei arquivo e eh um dir
+            if(strcmp(diretorioAtual->entries[i]->type, "dir") == 0){
+
+                int firstBlock = diretorioAtual->entries[i]->firstBlock;
+                DirChunk* auxDir = facc_loadDir(sb, fat, firstBlock);
+
+                if(auxDir->meta.entryQtde > 2){
+                    printf("Nao eh possivel deletar '%s': Diretorio nao vazio.\n", name);
+                
+                }else{
+                    facc_updateDirDel(sb, fat, diretorioAtual, i);
+                }
+
+                facc_unloadDirectory(auxDir);
+                notFound = 0;
+                break;
+            
+            //se encontrei arquivo e eh type qualquer (.txt, etc...)
+            }else{
+                facc_updateDirDel(sb, fat, diretorioAtual, i);
+                break;
+            }
+        }
+    }
+    
+    if(notFound == 1){
+        printf("Arquivo ou diretorio '%s' nao encontrado\n", name);
+        return;
+    }
+}
+
+
 DirChunk* changeDirectory(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, char* name, char* pathing){
     DirChunk* novoDir;
     int notFound = 1;
@@ -213,7 +255,6 @@ void listDirectory(DirChunk* diretorioAtual, char* name){
 
 void showPath(char* pathing){
     printf("%s\n", pathing);
-
 }
 
 int format_dsc(int blockQtde){

@@ -142,8 +142,12 @@ void listenCommand(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, char* com
         }
         makeDirectory(sb, fat, diretorioAtual, source);
     
-    // }else if(strcmp(type,"rm") == 0){
-    //     rmItem(diretorioAtual, sb, source);
+    }else if(strcmp(cmd,"rm") == 0){
+        if(!source || cmdCount < 2){
+            printf("mkdir <dirName>\n");
+            return;
+        }
+        removeItem(sb, fat, diretorioAtual, source);
 
     // }else if(strcmp(type,"cp") == 0){
     //     copyItem(diretorioAtual, sb,source, destination);

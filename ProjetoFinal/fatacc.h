@@ -87,6 +87,7 @@ Fat* facc_loadFat(Superblock* sb);
 DirChunk* facc_loadDir(Superblock* sb, Fat* fat, int firstBlock);
 
 void facc_updateDirAdd(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, Entry* ref);
+void facc_updateDirDel(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, int index);
 
 void facc_unloadDirectory(DirChunk* dir);
 int facc_findFreeBlock(Superblock* sb, Fat* fat);

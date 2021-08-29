@@ -175,6 +175,29 @@ void facc_updateDirAdd(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, Entry
     updateDirectory(sb, fat, diretorioAtual);
 }
 
+
+void facc_updateDirDel(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, int index){
+    if(index < 2 || index > diretorioAtual->meta.entryQtde){
+        printf("Erro ao remover arquivo.\n");
+        return;
+    }
+
+    //excluindo o arquivo.
+    deleteFile(sb, fat, diretorioAtual->entries[index]->firstBlock);
+
+    //removendo a entrada.
+    free(diretorioAtual->entries[index]);
+    int ultimoEntry = diretorioAtual->meta.entryQtde - 1;
+
+
+    diretorioAtual->entries[index] = diretorioAtual->entries[ultimoEntry];
+    diretorioAtual->entries[ultimoEntry] = NULL;
+
+    diretorioAtual->meta.entryQtde--;
+    
+    updateDirectory(sb, fat, diretorioAtual);
+}
+
 /*
 ========================================================================================================
 ========================================================================================================
@@ -242,7 +265,7 @@ void deleteFile(Superblock* sb, Fat* fat, int firstBlock){
         
         fat[aux] = FAT_F;
         aux = block;
-    }while(block != FAT_L);
+    } while(block != FAT_L);
 }
 
 file_chunk* openDir(Superblock* sb, Fat* fat, int firstBlock){
