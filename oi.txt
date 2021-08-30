@@ -1,2 +1,0 @@
-[29/08/2021 18:06:52] Para os arquivos de origem C++, o IntelliSenseMode foi alterado de "windows-gcc-x64" para "linux-gcc-x64" com base nos argumentos do compilador e na consulta do compilerPath: "/usr/bin/gcc"
-[29/08/2021 18:06:52] Para os arquivos de origem C++, o IntelliSenseMode foi alterado de "windows-gcc-x64" para "linux-gcc-x64" com base nos argumentos do compilador e na consulta do compilerPath: "/usr/bin/gcc"
