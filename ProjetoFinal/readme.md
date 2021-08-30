@@ -1,1 +1,11 @@
-https://www.overleaf.com/project/6123110ab6a26566fdcf4364
+link github: https://github.com/caiotheodoro/SO
+
+Como compilar: make
+
+Como executar: ./main
+
+Bibliotecas usadas: string.h - utilização do memcpy
+
+Exemplo de uso: terminal: make 
+                          ./main
+                          help
