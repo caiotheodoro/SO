@@ -117,7 +117,6 @@ void removeItem(Superblock* sb, Fat* fat, DirChunk* diretorioAtual,  char* name)
 DirChunk* changeDirectory(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, char* name, char* pathing){ 
     DirChunk* novoDir;
     int notFound = 1;
-    
     for(int i=0; i<diretorioAtual->meta.entryQtde; i++){  // Percorre o diretorio
         if(strcmp(diretorioAtual->entries[i]->name, name) == 0){ // Se encontrar o arquivo
             if(strcmp(diretorioAtual->entries[i]->type, "dir") == 0){ // Se encontrar um diretorio (tipo dir)
@@ -129,12 +128,10 @@ DirChunk* changeDirectory(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, ch
             }
         }
     }
-    
     if(notFound == 1){ // Se nao encontrar o diretorio
         printf("Diretorio nao encontrado\n"); // imprime mensagem de erro
         return diretorioAtual; // retorna o diretorio atual (proprio diretorio)
     }
-    
     if(strcmp(name,"..")== 0){ // Se o diretorio for o diretorio pai
         int size = strlen(pathing); // pega o tamanho do caminho
         while(size>=0){ // percorre o caminho
@@ -151,7 +148,6 @@ DirChunk* changeDirectory(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, ch
         strcat(pathing, novoDir->meta.name); // concatena o caminho com o nome do diretorio
     }
     //pwd path
-
     return novoDir; // retorna o novo diretorio
 }
 
@@ -495,29 +491,29 @@ void copyItem(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, char* source, 
 
     //encontrar o nome do arquivo
     int nameIndex = 0;
-    for(int i=size+1; i<strlen(destination); i++){
-        newName[nameIndex] = destination[i];
-        nameIndex++;
+    for(int i=size+1; i<strlen(destination); i++){ //percorre o caminho
+        newName[nameIndex] = destination[i]; //copia o nome do arquivo
+        nameIndex++; //incrementa o indice do nome
     }
 
     //encontrar a extensao do arquivo
     int flag = 0;
     int ext = 0;
-    for(int i=0; i<strlen(newName); i++){
-        if(flag == 1){
-            fileType[ext] = newName[i];
-            ext++;
+    for(int i=0; i<strlen(newName); i++){ //percorre o nome do arquivo
+        if(flag == 1){ //se flag for 1, eh pra pegar a extensao
+            fileType[ext] = newName[i]; //copia a extensao do arquivo
+            ext++; //incrementa o indice da extensao
         }
-        if(newName[i] == '.' && i != 0){
-            nameIndex = i;
+        if(newName[i] == '.' && i != 0){ //se encontrar um ponto e nao for o primeiro caractere
+            nameIndex = i; //salva o indice do ponto
             flag = 1;
         }
     }
 
-    fileType[ext] = '\0';
-    fileType[3] = '\0';
+    fileType[ext] = '\0'; //termina a extensao do arquivo
+    fileType[3] = '\0'; //termina a extensao do arquivo
 
-    newName[nameIndex] = '\0';
+    newName[nameIndex] = '\0'; //termina o nome do arquivo
     newName[7] = '\0'; //limitando em 8 caracteres.
 
     // >>>>>>>>>>>>>>>>> passo 2 <<<<<<<<<<<<<<<<<
@@ -649,7 +645,7 @@ void copyItem(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, char* source, 
                 facc_updateDirAdd(sb, fat, dir, ref);
 
                 if(dir->meta.firstBlock == diretorioAtual->meta.firstBlock){
-                    printf("diretorioatual\n");
+                   
                     int dirBlock = dir->meta.firstBlock;
                     facc_unloadDirectory(diretorioAtual);
                     diretorioAtual = facc_loadDir(sb, fat, dirBlock);
