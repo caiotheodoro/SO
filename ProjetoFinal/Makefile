@@ -1,2 +1,2 @@
 all:
-	gcc -g *.c -o main -lpthread
+	gcc -g *.c -o main
