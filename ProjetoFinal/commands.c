@@ -31,10 +31,10 @@ void help(){ // Função que imprime a ajuda
     printf("Descricao dos comandos:\n\n");
  
     printf("cd - Acessa um diretorio\n");
-    printf("\tcd <dir>\n\tcd /caminho/nome\n\n");
+    printf("\tcd <dir>\n\n");
 
     printf("mkdir - Cria um diretorio\n");
-    printf("\tmkdir <dir>\n\tmkdir /caminho/nome\n\n");
+    printf("\tmkdir <dir>\n\n");
 
     printf("rm - Remove um diretorio/arquivo\n");
     printf("\trm <dir | arquivo>\n\trm /caminho/nome\n\n");
