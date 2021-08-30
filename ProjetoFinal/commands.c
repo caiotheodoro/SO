@@ -37,7 +37,7 @@ void help(){ // Função que imprime a ajuda
     printf("\tmkdir <dir>\n\n");
 
     printf("rm - Remove um diretorio/arquivo\n");
-    printf("\trm <dir | arquivo>\n\trm /caminho/nome\n\n");
+    printf("\trm <dir | arquivo>\n\n");
 
     printf("cp - Copia um diretorio/arquivo\n");
     printf("\tcp <dir | arquivo>\n\tcp /caminho/nome\n\n");
