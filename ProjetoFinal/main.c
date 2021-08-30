@@ -7,7 +7,7 @@
 // #include "fatacc.h"
 #include "commands.h"
 
-#define BLOCKSIZE 512
+#define BLOCKSIZE 4096
 #define BLOCKQTDE 16
 
 char** split(char* command);
@@ -27,9 +27,11 @@ int main(int argc, char* argv[]){
                 //pedir blocksize e blockqtde
                 printf("Quantidade de blocos: ");            // Pergunta quantos blocos o disco deve ter
                 fgets(command, sizeof(command), stdin);     // Recebe a resposta do usuário
-                format_dsc(BLOCKSIZE, atoi(command));                  // Chama a função que formata o disco
-                printf("Disco criado.\n");                 // Informa que o disco foi criado
-                break;                                     // Sai do loop
+                int x = format_dsc(BLOCKSIZE, atoi(command));                  // Chama a função que formata o disco
+                if(x != 1){
+                    printf("Disco criado.\n");                 // Informa que o disco foi criado
+                    break;      
+                }                               // Sai do loop
 
             }else if(strncmp(command, "n", 1) == 0) {     // Se a resposta for "n"
                 printf("Disco carregado com sucesso!\n"); // Informa que o disco foi carregado
@@ -42,7 +44,7 @@ int main(int argc, char* argv[]){
         
     //arquivo nao existe
     }else{                                          
-        facc_format(BLOCKSIZE, BLOCKQTDE);           // Chama a função que cria o disco
+        format_dsc(BLOCKSIZE, BLOCKQTDE);           // Chama a função que cria o disco
         printf("Disco gerado com %d blocos de %d bytes.\nUtilize o comando 'format dsc <qtdeBlocos>' para formatar\n", BLOCKQTDE, BLOCKSIZE);   // Informa que o disco foi criado
     }
     //carrega na memoria
@@ -156,20 +158,21 @@ void listenCommand(Superblock** sb, Fat** fat, DirChunk** diretorioAtual, char* 
 
     
     }else if(strcmp(cmd, "format") == 0 && strcmp(source, "dsc") == 0){ //se a primeira palavra for format e o segundo for dsc
-        format_dsc(BLOCKSIZE, atoi(destination)); //formata o disco com a quantidade de blocos especificada
+        int x = format_dsc(BLOCKSIZE, atoi(destination)); //formata o disco com a quantidade de blocos especificada
+        if(x != 1){
+            //atualiza a memoria
+            //load superblock
+            free(*sb); //libera a memoria do superblock
+            *sb = facc_loadSuperblock(); //carrega o superblock
             
-        //atualiza a memoria
-        //load superblock
-        free(*sb); //libera a memoria do superblock
-        *sb = facc_loadSuperblock(); //carrega o superblock
-        
-        //load fat
-        free(*fat); //libera a memoria do fat
-        *fat = facc_loadFat(*sb); //carrega o fat
-        
-        // READ_ROOT
-        facc_unloadDirectory(*diretorioAtual); //libera a memoria do diretorio atual
-        *diretorioAtual = facc_loadDir(*sb, *fat, (*sb)->rootPos); //carrega o diretorio raiz
+            //load fat
+            free(*fat); //libera a memoria do fat
+            *fat = facc_loadFat(*sb); //carrega o fat
+            
+            // READ_ROOT
+            facc_unloadDirectory(*diretorioAtual); //libera a memoria do diretorio atual
+            *diretorioAtual = facc_loadDir(*sb, *fat, (*sb)->rootPos); //carrega o diretorio raiz
+        }
 
     }else if(strcmp(cmd, "print") == 0 && strcmp(source, "fat") == 0){
         printFat(*sb, *fat);

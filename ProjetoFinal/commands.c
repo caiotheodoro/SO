@@ -431,13 +431,18 @@ void showPath(char* pathing){
 ===============================================================================
 */
 
-void format_dsc(int blockSize, int blockQtde){
+int format_dsc(int blockSize, int blockQtde){
     if(blockQtde < 4){ //se o numero de blocos for menor que 4, nao eh possivel formatar
         printf("Entrada inválida, a quantidade de blocos deve possuir ao menos 4 blocos (sb, fat, root, data#1)\n");
-        return;
+        return 1;
+    }
+    if((blockQtde * sizeof(Fat)) > blockSize){
+        printf("Nao eh possivel armazenar uma fat de %d posicoes em um bloco de %d bytes. (Max: %d)\n", blockQtde, blockSize, blockSize/sizeof(Fat));
+        return 1;
     }
     
     facc_format(blockSize, blockQtde); //formata o disco
+    return 0;
 }
 
 /*
