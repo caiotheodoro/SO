@@ -5,23 +5,30 @@
 #include <stdlib.h>
  
 /* ========================== funcoes internas ========================= */
-
-
 // file_chunk* createDirectory(char* name, int freeBlock, DirMeta* fatherMeta);
-// void writeBlock(Superblock* sb, int blockNum, void* buffer, int bufferSize);
-// void updateFat(Superblock* sb, Fat* fat, int pos, int nextPos);
-file_t* readBlock(Superblock* sb, int blockNum, int bufferSize);
 file_chunk* openDir(Superblock* sb, Fat* fat, int firstBlock);
-void updateDirectory(Superblock* sb, Fat* fat, DirChunk* directory);
-void deleteFile(Superblock* sb, Fat* fat, int firstBlock);
-void saveFile(Superblock* sb, Fat* fat, file_chunk* fc, int block);
 
+// void writeBlock(Superblock* sb, int blockNum, void* buffer, int bufferSize);
+file_t* readBlock(Superblock* sb, int blockNum, int bufferSize);
+
+// void updateFat(Superblock* sb, Fat* fat, int pos, int nextPos);
+// void updateDirectory(Superblock* sb, Fat* fat, DirChunk* directory);
+
+void deleteFile(Superblock* sb, Fat* fat, int firstBlock);
+// void saveFile(Superblock* sb, Fat* fat, file_chunk* fc, int block);
+// file_chunk* openFile(Superblock* sb, Fat* fat, Entry* meta);
 /* ===================================================================== */
+
+/*
+=======================================================================================================
+============================== facc_format(int blockSize, int blockQtde) ==============================
+=======================================================================================================
+*/
 
 // Formata o disco, deixando-o com um superbloco, fat e um diretorio root
 void facc_format(int blockSize, int blockQtde){
     /* criar disco */
-    FILE* dsc = fopen(DISCO, "w"); // cria o disco
+    FILE* dsc = fopen(DISCO, "wb"); // cria o disco
     char* tmp2 = (char*)calloc(blockSize, sizeof(char)); // cria um buffer temporario
     for(int i=0; i<blockQtde; i++) fwrite(tmp2, 1, blockSize, dsc); // escreve o buffer no disco
     free(tmp2); // libera o buffer 
@@ -78,6 +85,11 @@ void facc_format(int blockSize, int blockQtde){
     free(file); // libera o file_chunk
 }
 
+/*
+=======================================================================================================
+======================================== facc_loadSuperblock() ========================================
+=======================================================================================================
+*/
 
 Superblock* facc_loadSuperblock(){
     //superblock que sera retornado
@@ -93,6 +105,11 @@ Superblock* facc_loadSuperblock(){
     return sb; // retorna o superbloco
 }
 
+/*
+========================================================================================================
+===================================== facc_loadFat(Superblock* sb) =====================================
+========================================================================================================
+*/
 
 Fat* facc_loadFat(Superblock* sb){ // carrega o fat do disco
     //fat
@@ -105,6 +122,12 @@ Fat* facc_loadFat(Superblock* sb){ // carrega o fat do disco
     free(tmp); // libera o file_t
     return fat; // retorna o fat
 }
+
+/*
+========================================================================================================
+======================== facc_loadDir(Superblock* sb, Fat* fat, int firstBlock) ========================
+========================================================================================================
+*/
 
 DirChunk* facc_loadDir(Superblock* sb, Fat* fat, int firstBlock){ // carrega o diretorio do disco
     DirChunk* directory = (DirChunk*)malloc(sizeof(DirChunk)); // cria o diretorio
@@ -133,6 +156,11 @@ DirChunk* facc_loadDir(Superblock* sb, Fat* fat, int firstBlock){ // carrega o d
     return directory; // retorna o diretorio
 }
 
+/*
+=======================================================================================================
+================================= facc_unloadDirectory(DirChunk* dir) =================================
+=======================================================================================================
+*/
 
 void facc_unloadDirectory(DirChunk* dir){ // desaloca o diretorio
     for(int i=0; i<dir->meta.entryQtde; i++){ // para cada entry
@@ -142,6 +170,12 @@ void facc_unloadDirectory(DirChunk* dir){ // desaloca o diretorio
     free(dir); // libera o diretorio
 }
 
+/*
+========================================================================================================
+============================= facc_findFreeBlock(Superblock* sb, Fat* fat) =============================
+========================================================================================================
+*/
+
 int facc_findFreeBlock(Superblock* sb, Fat* fat){ // encontra um bloco livre
     for(int i=3; i < sb->blockQtde; i++){ // para cada bloco
         if(fat[i] == FAT_F){ // se for livre
@@ -150,6 +184,12 @@ int facc_findFreeBlock(Superblock* sb, Fat* fat){ // encontra um bloco livre
     }
     return -1; // nao achou
 }
+
+/*
+=======================================================================================================
+========== facc_updateDirAdd(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, Entry* ref) ==========
+=======================================================================================================
+*/
 
 void facc_updateDirAdd(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, Entry* ref){ // atualiza o diretorio apos adicionar um novo entry
      //criando vetor de entries
@@ -175,6 +215,11 @@ void facc_updateDirAdd(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, Entry
     updateDirectory(sb, fat, diretorioAtual); // atualiza o diretorio
 }
 
+/*
+========================================================================================================
+=========== facc_updateDirDel(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, int index) ===========
+========================================================================================================
+*/
 
 void facc_updateDirDel(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, int index){ // atualiza o diretorio apos deletar um entry
     if(index < 2 || index > diretorioAtual->meta.entryQtde){ // se o index for invalido
@@ -199,14 +244,52 @@ void facc_updateDirDel(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, int i
 }
 
 /*
+=======================================================================================================
+======== facc_updateDirDelEntry(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, int index) ========
+=======================================================================================================
+*/
+
+void facc_updateDirDelEntry(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, int index){ // atualiza o diretorio apos deletar um entry
+    if(index < 2 || index > diretorioAtual->meta.entryQtde){ // se o index for invalido
+        printf("Erro ao remover arquivo.\n"); // erro
+        return;
+    }
+
+    // funcao clone da anterior onde o arquivo nao eh deletado
+    // //excluindo o arquivo.
+    // deleteFile(sb, fat, diretorioAtual->entries[index]->firstBlock); // exclui o arquivo
+
+    //removendo a entrada.
+    free(diretorioAtual->entries[index]); // libera o entry
+    int ultimoEntry = diretorioAtual->meta.entryQtde - 1; // pega o ultimo entry
+
+
+    diretorioAtual->entries[index] = diretorioAtual->entries[ultimoEntry]; // copia o ultimo entry para o index
+    diretorioAtual->entries[ultimoEntry] = NULL; // libera o ultimo entry
+
+    diretorioAtual->meta.entryQtde--; // diminui o entryQtde
+     
+    updateDirectory(sb, fat, diretorioAtual); // atualiza o diretorio
+}
+
+/*
+========================================================================================================
+========================================================================================================
+========================================================================================================
 ========================================================================================================
 ========================================================================================================
 ========================================================================================================
 ========================================================================================================
 */
 
+/*
+======================================================================================================
+=================== updateDirectory(Superblock* sb, Fat* fat, DirChunk* directory) ===================
+======================================================================================================
+*/
+
 void updateDirectory(Superblock* sb, Fat* fat, DirChunk* directory){ // atualiza o diretorio
-    //removo o antigo da memoria
+    //remove o antigo da memoria
     int firstBlock = directory->meta.firstBlock; // pega o primeiro bloco
     deleteFile(sb, fat, firstBlock); // exclui o arquivo
 
@@ -224,6 +307,12 @@ void updateDirectory(Superblock* sb, Fat* fat, DirChunk* directory){ // atualiza
     //coloco no disco o file_t
     saveFile(sb, fat, fc, firstBlock); // salva o file_t no disco
 }
+
+/*
+=======================================================================================================
+==================== saveFile(Superblock* sb, Fat* fat, file_chunk* fc, int block) ====================
+=======================================================================================================
+*/
  
 void saveFile(Superblock* sb, Fat* fat, file_chunk* fc, int block){ // salva o file_chunk no disco
     int bytes = fc->bytes; // pega o tamanho do file_chunk
@@ -253,6 +342,12 @@ void saveFile(Superblock* sb, Fat* fat, file_chunk* fc, int block){ // salva o f
     }
 }
 
+/*
+========================================================================================================
+========================= deleteFile(Superblock* sb, Fat* fat, int firstBlock) =========================
+========================================================================================================
+*/
+
 void deleteFile(Superblock* sb, Fat* fat, int firstBlock){
     
     int block = firstBlock; // primeiro bloco
@@ -267,6 +362,12 @@ void deleteFile(Superblock* sb, Fat* fat, int firstBlock){
         aux = block; // atualiza o auxiliar
     } while(block != FAT_L); 
 }
+
+/*
+=======================================================================================================
+========================== openDir(Superblock* sb, Fat* fat, int firstBlock) ==========================
+=======================================================================================================
+*/
 
 file_chunk* openDir(Superblock* sb, Fat* fat, int firstBlock){ 
     if(firstBlock < 0 || firstBlock >= sb->blockQtde) return NULL; // se o primeiro bloco for invalido
@@ -306,6 +407,52 @@ file_chunk* openDir(Superblock* sb, Fat* fat, int firstBlock){
     return fc;
 }
 
+/////////////////////////////
+/////////////////////////////
+/////////////////////////////
+/////////////////////////////
+/////////////////////////////
+
+file_chunk* openFile(Superblock* sb, Fat* fat, Entry* meta){ 
+    if(meta->firstBlock < 0 || meta->firstBlock >= sb->blockQtde) return NULL; // se o primeiro bloco for invalido
+     
+    //cria o file_chunk com a stream do arquivo e seus bytes para retornar
+    file_chunk* fc = (file_chunk*)malloc(sizeof(file_chunk)); // cria o file_chunk
+    fc->bytes = meta->bytes; // define o tamanho do file_chunk
+    fc->file = (file_t*)malloc(fc->bytes);  // aloca o file_t
+
+    file_t* tmp; // auxiliar
+    int i = 0; 
+    int block = meta->firstBlock;
+    int bytes = meta->bytes;
+
+    //faz a leitura de cada bloco e adiciona na stream "file_t fc->file" 
+    do{ // enquanto o bloco nao for o ultimo
+        if(fat[block] == FAT_B || fat[block] == FAT_F) return NULL; // erro
+
+        int readingBytes = (bytes > sb->blockSize) ? sb->blockSize : bytes;
+        tmp = readBlock(sb, block, readingBytes); // le o bloco
+        memcpy(fc->file + (i*sb->blockSize), tmp, readingBytes); // copia o bloco para o file_t
+        free(tmp); // libera o bloco temporario
+
+        i++; // incrementa o contador   
+        block = fat[block]; // pega o proximo bloco
+        bytes -= readingBytes;
+    }while(block != FAT_L);
+
+    if(bytes != 0){
+        printf("Warning: O arquivo foi lido com mais ou menos bytes que o devido.\n");
+    }
+
+    //retorno o file_chunk
+    return fc;
+}
+
+/*
+=======================================================================================================
+====================== updateFat(Superblock* sb, Fat* fat, int pos, int nextPos) ======================
+=======================================================================================================
+*/
 
 void updateFat(Superblock* sb, Fat* fat, int pos, int nextPos){
     if(pos < 0 || pos >= sb->blockQtde) return; // se o primeiro bloco for invalido
@@ -315,6 +462,12 @@ void updateFat(Superblock* sb, Fat* fat, int pos, int nextPos){
     fat[pos] = nextPos;
     writeBlock(sb, sb->fatPos, fat, sizeof(Fat)*sb->blockQtde); // salva o fat no disco
 }
+
+/*
+=======================================================================================================
+=================== createDirectory(char* name, int freeBlock, DirMeta* fatherMeta) ===================
+=======================================================================================================
+*/
 
 file_chunk* createDirectory(char* name, int freeBlock, DirMeta* fatherMeta){ 
     DirMeta meta; // cria o meta do diretorio
@@ -351,12 +504,17 @@ file_chunk* createDirectory(char* name, int freeBlock, DirMeta* fatherMeta){
     return fc;
 }
 
+/*
+========================================================================================================
+================ writeBlock(Superblock* sb, int blockNum, void* buffer, int bufferSize) ================
+========================================================================================================
+*/
 
 void writeBlock(Superblock* sb, int blockNum, void* buffer, int bufferSize){
     if(blockNum >= sb->blockQtde) return;
     if(bufferSize <= 0 || bufferSize > sb->blockSize) return;
 
-    FILE* dsc = fopen(DISCO, "r+"); // abre o disco
+    FILE* dsc = fopen(DISCO, "rb+"); // abre o disco
 
     //ir para o bloco selecionado
     fseek(dsc, blockNum*sb->blockSize, SEEK_SET); 
@@ -366,12 +524,17 @@ void writeBlock(Superblock* sb, int blockNum, void* buffer, int bufferSize){
     fclose(dsc);
 }
 
+/*
+=======================================================================================================
+======================= readBlock(Superblock* sb, int blockNum, int bufferSize) =======================
+=======================================================================================================
+*/
 
 file_t* readBlock(Superblock* sb, int blockNum, int bufferSize){
     if(blockNum >= sb->blockQtde) return NULL; // se o bloco for invalido
     if(bufferSize <= 0 || bufferSize > sb->blockSize) return NULL; // se o buffer for invalido
 
-    FILE* dsc = fopen(DISCO, "r"); // abre o disco
+    FILE* dsc = fopen(DISCO, "rb"); // abre o disco
     file_t* buffer = (file_t*)malloc(sizeof(char)*bufferSize); // aloca o buffer
 
     //ir para o bloco selecionado e ler os bytes
@@ -381,9 +544,32 @@ file_t* readBlock(Superblock* sb, int blockNum, int bufferSize){
     fclose(dsc); // fechar o disco
     return buffer; // retorna o buffer
 }
+/*
+=======================================================================================================
+======================= file_chunk* importFile(char* source) =======================
+=======================================================================================================
+*/
 
 
+file_chunk* importFile(char* source){
+    FILE* fp = fopen(source, "rb"); //abre o arquivo
+    if(fp == NULL){ //se nao conseguir abrir o arquivo
+        printf("Erro: Nao foi possivel importar o arquivo '%s'.\n", source);
+        return NULL;
+    }
+ 
+    fseek(fp, 0, SEEK_END);//define o ponteiro do arquivo para o final
+    int bytes = ftell(fp);//pega o tamanho do arquivo
+    fseek(fp, 0, SEEK_SET);//define o ponteiro do arquivo para o inicio
 
+    file_chunk* fc = (file_chunk*)malloc(sizeof(file_chunk));//aloca memoria para o file_chunk
+    fc->file = (file_t*)malloc(sizeof(file_t) * bytes);//aloca memoria para o file_t
+    fc->bytes = bytes;//atribui o tamanho do arquivo ao file_chunk
+
+    fread(fc->file, sizeof(char), bytes, fp);
+    fclose(fp);
+    return fc;
+}
 
 // FileSystem* createFile(Superblock sb, file_chunk* bloco, int blockNum, char* nome){
 //     if(blockNum >= sb.blockQtde) return NULL; //sem espaco

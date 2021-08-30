@@ -7,7 +7,7 @@
 // #include "fatacc.h"
 #include "commands.h"
 
-#define BLOCKSIZE 4096
+#define BLOCKSIZE 512
 #define BLOCKQTDE 16
 
 char** split(char* command);
@@ -27,7 +27,7 @@ int main(int argc, char* argv[]){
                 //pedir blocksize e blockqtde
                 printf("Quantidade de blocos: ");            // Pergunta quantos blocos o disco deve ter
                 fgets(command, sizeof(command), stdin);     // Recebe a resposta do usuário
-                format_dsc(atoi(command));                  // Chama a função que formata o disco
+                format_dsc(BLOCKSIZE, atoi(command));                  // Chama a função que formata o disco
                 printf("Disco criado.\n");                 // Informa que o disco foi criado
                 break;                                     // Sai do loop
 
@@ -43,7 +43,7 @@ int main(int argc, char* argv[]){
     //arquivo nao existe
     }else{                                          
         facc_format(BLOCKSIZE, BLOCKQTDE);           // Chama a função que cria o disco
-        printf("Disco gerado com &d blocos de %d bytes.\nUtilize o comando format dsc <qtdeBlocos> para formatar", BLOCKQTDE, BLOCKSIZE);   // Informa que o disco foi criado
+        printf("Disco gerado com %d blocos de %d bytes.\nUtilize o comando 'format dsc <qtdeBlocos>' para formatar\n", BLOCKQTDE, BLOCKSIZE);   // Informa que o disco foi criado
     }
     //carrega na memoria
     //load superblock
@@ -94,8 +94,12 @@ void listenCommand(Superblock** sb, Fat** fat, DirChunk** diretorioAtual, char* 
         destination = *(vals + 2); //pega o valor da terceira palavra
         cmdCount++;
     }
+
+    //================================
+    //************************COMANDOS
     if(strcmp(cmd, "help") == 0){ //se a primeira palavra for help
         help();
+
 
     }else if(strcmp(cmd,"cd") == 0){ //se a primeira palavra for cd
         if(!source || cmdCount < 2){
@@ -103,32 +107,56 @@ void listenCommand(Superblock** sb, Fat** fat, DirChunk** diretorioAtual, char* 
             return;
         }
         *diretorioAtual = changeDirectory(*sb, *fat, *diretorioAtual, source, pathing); //muda o diretorio atual
+    
+
     }else if(strcmp(cmd,"mkdir") == 0){ //se a primeira palavra for mkdir
         if(!source || cmdCount < 2){ //se nao tiver o nome do diretorio
             printf("mkdir <dirName>\n"); 
             return;
         }
         makeDirectory(*sb, *fat, *diretorioAtual, source); //cria o diretorio
+    
+
     }else if(strcmp(cmd,"rm") == 0){ //se a primeira palavra for rm
         if(!source || cmdCount < 2){ //se nao tiver o nome do item (diretorio ou arquivo)
-            printf("mkdir <dirName>\n");
+            printf("rm <Name>\n");
             return;
         }
         removeItem(*sb, *fat, *diretorioAtual, source);      
+    
+
     }else if(strcmp(cmd,"cp") == 0){
-         copyItem(*diretorioAtual, *sb,source, destination);
+        if(!source || !destination || cmdCount < 3){ //se nao tiver o nome do item (diretorio ou arquivo)
+            printf("cp <source> <destination>\n");
+            return;
+        }
+        copyItem(*sb, *fat, *diretorioAtual, source, destination);
 
-     }else if(strcmp(cmd,"mv") == 0){ //se a primeira palavra for mv
-         moveItem(*diretorioAtual, *sb,source, destination); //move o item (diretorio ou arquivo)
+    }else if(strcmp(cmd,"exp") == 0){
+        if(!source || !destination || cmdCount < 3){ //se nao tiver o nome do item (diretorio ou arquivo)
+            printf("exp <source> <newname>\n");
+            return;
+        }
+        exportItem(*sb, *fat, *diretorioAtual, source, destination);
 
+    }else if(strcmp(cmd,"mv") == 0){ //se a primeira palavra for mv
+        if(!source || !destination || cmdCount < 3){ //se nao tiver o nome do item (diretorio ou arquivo)
+            printf("mv <source> <destination>\n");
+            return;
+        }
+        moveItem(*sb, *fat, *diretorioAtual, source, destination); //move o item (diretorio ou arquivo)
+
+    
     }else if(strcmp(cmd, "ls") == 0){ //se a primeira palavra for ls
         listDirectory(*diretorioAtual, source); //lista o diretorio atual
+
 
     }else if(strcmp(cmd, "pwd") == 0){ //se a primeira palavra for pwd
         showPath(pathing); //mostra o caminho atual
 
+    
     }else if(strcmp(cmd, "format") == 0 && strcmp(source, "dsc") == 0){ //se a primeira palavra for format e o segundo for dsc
-        format_dsc(atoi(destination)); //formata o disco com a quantidade de blocos especificada
+        format_dsc(BLOCKSIZE, atoi(destination)); //formata o disco com a quantidade de blocos especificada
             
         //atualiza a memoria
         //load superblock
@@ -143,6 +171,8 @@ void listenCommand(Superblock** sb, Fat** fat, DirChunk** diretorioAtual, char* 
         facc_unloadDirectory(*diretorioAtual); //libera a memoria do diretorio atual
         *diretorioAtual = facc_loadDir(*sb, *fat, (*sb)->rootPos); //carrega o diretorio raiz
 
+    }else if(strcmp(cmd, "print") == 0 && strcmp(source, "fat") == 0){
+        printFat(*sb, *fat);
     }else{ //se nao for nenhuma das opcoes
         printf("Comando '%s' não encontrado, digite 'help' para ver os comandos disponíveis.\n", cmd);
     }

@@ -14,7 +14,7 @@
 
 #include <limits.h>
 
-#define DISCO "disco.txt"
+#define DISCO "disco.dsc"
 
 // Superbloco
 typedef struct{
@@ -69,37 +69,29 @@ typedef struct{
     Entry** entries;
 } DirChunk;
 
-// typedef struct filesystem{
-//         file_chunk* bloco;
-//         int blockNum;
-//         char* nome;
-//         char* type;
-//         int ID;
-//         /* */
-// } FileSystem;
-
 /* ============================================================= */
 
 void facc_format(int blockSize, int blockQtde);
+
 Superblock* facc_loadSuperblock();
+
 Fat* facc_loadFat(Superblock* sb);
-
-DirChunk* facc_loadDir(Superblock* sb, Fat* fat, int firstBlock);
-
-void facc_updateDirAdd(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, Entry* ref);
-void facc_updateDirDel(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, int index);
-
-void facc_unloadDirectory(DirChunk* dir);
 int facc_findFreeBlock(Superblock* sb, Fat* fat);
 
-/* ========================== funcoes internas (usadas fora xd)========================= */
+DirChunk* facc_loadDir(Superblock* sb, Fat* fat, int firstBlock);
+void facc_unloadDirectory(DirChunk* dir);
+void facc_updateDirAdd(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, Entry* ref);
+void facc_updateDirDel(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, int index);
+void facc_updateDirDelEntry(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, int index);
+
+
+/* ========================== funcoes internas (usadas fora xD)========================= */
 file_chunk* createDirectory(char* name, int freeBlock, DirMeta* fatherMeta);
 void writeBlock(Superblock* sb, int blockNum, void* buffer, int bufferSize);
 void updateFat(Superblock* sb, Fat* fat, int pos, int nextPos);
+void updateDirectory(Superblock* sb, Fat* fat, DirChunk* directory);
+
+file_chunk* openFile(Superblock* sb, Fat* fat, Entry* meta);
+void saveFile(Superblock* sb, Fat* fat, file_chunk* fc, int block);
+file_chunk* importFile(char* source);
 /* ========================== funcoes internas ========================= */
-
-
-
-// struct dirmeta
-// struct entry . (bloco ini = procurarBlocoLivre)
-// struct entry .. (bloco ini = blocoAtual)

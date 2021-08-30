@@ -16,8 +16,16 @@ Pode ser util para o comando "mv"
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <unistd.h>
 
 #include "commands.h"
+
+
+/*
+============================================================================================
+========================================== help() ==========================================
+============================================================================================
+*/
 
 void help(){ // Função que imprime a ajuda
     printf("Descricao dos comandos:\n\n");
@@ -45,8 +53,19 @@ void help(){ // Função que imprime a ajuda
 
     printf("format dsc - Formata o disco simulado\n");
     printf("\tformat dsc <num blocks>\n\n");
+
+    printf("exp - Exporta um arquivo para o diretorio do programa.\n");
+    printf("\texp <arquivo> <novo nome>\n\n");
+
+    printf("print fat - Imprime a fat\n");
+    printf("\tprint fat\n\n");
 }
 
+/*
+=====================================================================================================
+========================================== removeItem() ==========================================
+=====================================================================================================
+*/
 
 void removeItem(Superblock* sb, Fat* fat, DirChunk* diretorioAtual,  char* name){
     if(strcmp(name, ".") == 0 || strcmp(name, "..") == 0 ){
@@ -89,6 +108,11 @@ void removeItem(Superblock* sb, Fat* fat, DirChunk* diretorioAtual,  char* name)
     }
 }
 
+/*
+======================================================================================================
+======================================= changeDirectory() =======================================
+======================================================================================================
+*/
 
 DirChunk* changeDirectory(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, char* name, char* pathing){ 
     DirChunk* novoDir;
@@ -131,6 +155,12 @@ DirChunk* changeDirectory(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, ch
     return novoDir; // retorna o novo diretorio
 }
 
+/*
+===================================================================================================
+======================================== makeDirectory() ========================================
+===================================================================================================
+*/
+
 void makeDirectory(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, char* name){
         //checar se ja existe diretorio com este nome
         for(int i=0; i<diretorioAtual->meta.entryQtde; i++){ // Percorre o diretorio
@@ -166,14 +196,159 @@ void makeDirectory(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, char* nam
         facc_updateDirAdd(sb, fat, diretorioAtual, ref); 
 }
 
-void copyItem(DirChunk* diretorioAtual,Superblock* sb,char* source,char* destation){
-    printf("copyItem");
-//dirMeta (?)
+/*
+=======================================================================================================
+============================================== moveItem() ==============================================
+=======================================================================================================
+*/
+
+void moveItem(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, char* source, char* destination){
+    int sourceEntry = -1;
+    
+    //checar se existe uma entrada com este nome
+    int entryFound = -1;
+    for(int i=0; i<diretorioAtual->meta.entryQtde; i++){ // Percorre o diretorio
+        if(strcmp(diretorioAtual->entries[i]->name, source) == 0){ // Se encontrar o arquivo
+            entryFound = i;
+            sourceEntry = i;
+            break;
+        }
+    }
+
+    //se nao existir uma entrada retorna erro
+    if(entryFound == -1){
+        printf("Erro, nao existe um arquivo com este nome\n");
+        return;
+    }
+
+    // >>>>>>>>>>>>>>>>> passo 1 <<<<<<<<<<<<<<<<<
+    // >>>>>>>>>>>>>>>>> passo 1 <<<<<<<<<<<<<<<<<
+    //Separar em novo nome e encontrar o proximo diretorio
+    char path[250];
+    char newName[8];
+
+    //encontrar novo path
+    strcpy(path, destination);
+    int size = strlen(path);
+    while(size>=0){ // percorre o caminho
+        if(path[size] == '/'){ // se encontrar um '/'
+            path[size] = '\0'; // corta o caminho
+            break; // para de percorrer o caminho
+        }
+        size--; 
+    }
+    if(strlen(path) == strlen(destination)){ //se nao houver nenhum '/' eh pra renomear, portanto path eh vazio
+        path[0] = '\0';
+    }
+
+    //encontrar o nome do arquivo
+    int nameIndex = 0;
+    for(int i=size+1; i<strlen(destination); i++){
+        newName[nameIndex] = destination[i];
+        nameIndex++;
+    }
+    newName[nameIndex] = '\0';
+    newName[7] = '\0'; //limitando em 8 caracteres.
+
+    // >>>>>>>>>>>>>>>>> passo 2 <<<<<<<<<<<<<<<<<
+    // >>>>>>>>>>>>>>>>> passo 2 <<<<<<<<<<<<<<<<<
+    // se nao existir path, ele entra aqui e renomeia
+    if(strlen(path) < 1){
+
+        // > mudando nome no meta do arquivo
+        if(strcmp(diretorioAtual->entries[sourceEntry]->type, "dir") == 0){
+            DirChunk* renameDir = facc_loadDir(sb, fat, diretorioAtual->entries[sourceEntry]->firstBlock);
+            strcpy(renameDir->meta.name, newName);
+            updateDirectory(sb, fat, renameDir);
+            facc_unloadDirectory(renameDir);
+        }
+
+        // > mudando o nome na entry
+        strcpy(diretorioAtual->entries[sourceEntry]->name, newName);
+        updateDirectory(sb, fat, diretorioAtual);
+        
+
+
+    // se existir path, ele percorre o path procurando o ultimo diretorio
+    }else{
+        DirChunk* dir = facc_loadDir(sb, fat, diretorioAtual->meta.firstBlock);
+        int firstBlock;
+
+        char* token = strtok(path, "/");
+
+        if(strcmp(token, source) == 0){
+            printf("Erro, nao eh possivel mover um arquivo para dentro dele mesmo. (%s > %s)\n", source, token);
+            return;
+        }
+
+        while(token != NULL){
+            //verificar se o diretorio existe
+            entryFound = -1;
+            for(int i=0; i<dir->meta.entryQtde; i++){ // Percorre o diretorio
+                if(strcmp(dir->entries[i]->name, token) == 0){ // Se encontrar um arquivo
+                    if(strcmp(dir->entries[i]->type, "dir") == 0){  //se o arquivo for dir
+                        entryFound = i;
+                    }
+                }
+            }
+            if(entryFound == -1){
+                printf("Erro, diretorio de destino '%s' nao existe.\n", token);
+                return;
+            }
+
+            //se o diretorio existir:
+            firstBlock = dir->entries[entryFound]->firstBlock;
+            if(dir != diretorioAtual) facc_unloadDirectory(dir);
+            dir = facc_loadDir(sb, fat, firstBlock);
+
+            token = strtok(NULL, "/");
+        }
+        
+        // >>>>>>>>>>>>>>>>> passo 3 <<<<<<<<<<<<<<<<<
+        // >>>>>>>>>>>>>>>>> passo 3 <<<<<<<<<<<<<<<<<
+
+        //verificar se ja existe um arquivo com o mesmo nome no diretorio destino
+        for(int i=0; i<dir->meta.entryQtde; i++){ // Percorre o diretorio
+            if(strcmp(dir->entries[i]->name, newName) == 0){ // Se encontrar um arquivo
+                printf("Erro, ja existe um arquivo com o nome '%s' no diretorio destino '%s'\n", newName, dir->entries[i]->name);
+                return;
+            }
+        }
+
+        //mudar o diretorio para o novo nome
+        // > mudando na entry diretorio pai
+        strcpy(diretorioAtual->entries[sourceEntry]->name, newName);
+
+        // > mudando nome no meta do arquivo
+        if(strcmp(diretorioAtual->entries[sourceEntry]->type, "dir") == 0){
+            DirChunk* renameDir = facc_loadDir(sb, fat, diretorioAtual->entries[sourceEntry]->firstBlock);
+            strcpy(renameDir->meta.name, newName);
+            renameDir->entries[1]->firstBlock = dir->meta.firstBlock;
+            updateDirectory(sb, fat, renameDir);
+            facc_unloadDirectory(renameDir);
+        }
+        
+        // crio a referencia (entry) do dir que estou movendo para o dir que sera o novo pai
+        Entry* ref = (Entry*)malloc(sizeof(Entry));
+        memcpy(ref, diretorioAtual->entries[sourceEntry], sizeof(Entry));
+        
+        //deletar a entrada sourceEntry no diretorioAtual;
+        facc_updateDirDelEntry(sb, fat, diretorioAtual, sourceEntry);
+        
+        //adicionar a entrada sourceEntry no diretorioDestino;
+        facc_updateDirAdd(sb, fat, dir, ref);
+        // updateFat(sb, fat, )
+
+        //tirar da memoria o diretorio destino
+        facc_unloadDirectory(dir);
+    }
 }
 
-void moveItem(DirChunk* diretorioAtual,Superblock* sb,char* source,char* destation){
-    printf("moveItem");
-}
+/*
+=====================================================================================================
+========================================== createPathing() ==========================================
+=====================================================================================================
+*/
 
 char* createPathing(){
     char* path = (char*) malloc (sizeof(char)*250); //aloca memoria para o path
@@ -182,14 +357,20 @@ char* createPathing(){
     return path; //retorna o path
 }
 
+/*
+=======================================================================================================
+=========================================== listDirectory() ===========================================
+=======================================================================================================
+*/
+
 void listDirectory(DirChunk* diretorioAtual, char* name){
    
     if(name == NULL){   //se nao ha segundo parametro
-        for(int i=0; i<diretorioAtual->meta.entryQtde; i++){
+        for(int i=0; i<diretorioAtual->meta.entryQtde; i++){ 
             if(strcmp(diretorioAtual->entries[i]->type, "dir") == 0){
-                printf("%s\t", diretorioAtual->entries[i]->name);
+                printf("%s\t", diretorioAtual->entries[i]->name, diretorioAtual->entries[i]->firstBlock);
             }else{
-                printf("%s.%s\t", diretorioAtual->entries[i]->name, diretorioAtual->entries[i]->type);
+                printf("%s(%s)\t", diretorioAtual->entries[i]->name, diretorioAtual->entries[i]->type);
             }
         }
     
@@ -199,7 +380,7 @@ void listDirectory(DirChunk* diretorioAtual, char* name){
                 if(strcmp(diretorioAtual->entries[i]->type, "dir") == 0){
                     printf("%s\t", diretorioAtual->entries[i]->name);
                 }else{
-                    printf("%s.%s\t", diretorioAtual->entries[i]->name, diretorioAtual->entries[i]->type);
+                    printf("%s(%s)\t", diretorioAtual->entries[i]->name, diretorioAtual->entries[i]->type);
                 }
             }
         }
@@ -225,7 +406,7 @@ void listDirectory(DirChunk* diretorioAtual, char* name){
                     printf("%s\t", diretorioAtual->entries[i]->name);
                     //chamar open dir e listar os diretorios dentro do diretorio "name"
                 }else{    //se não eh diretorio, lista as informacoes do arquivo (nome)
-                    printf("%s.%s\t", diretorioAtual->entries[i]->name, diretorioAtual->entries[i]->type);
+                    printf("%s(%s)\t", diretorioAtual->entries[i]->name, diretorioAtual->entries[i]->type);
                 }
                 notFound = 0;
             }
@@ -238,15 +419,397 @@ void listDirectory(DirChunk* diretorioAtual, char* name){
     printf("\n");
 }
 
+/*
+=============================================================================
+================================ showPath() ================================
+=============================================================================
+*/
+
 void showPath(char* pathing){
     printf("%s\n", pathing); //mostra o path
 }
 
-void format_dsc(int blockQtde){
+/*
+===============================================================================
+================================ format_dsc() ================================
+===============================================================================
+*/
+
+void format_dsc(int blockSize, int blockQtde){
     if(blockQtde < 4){ //se o numero de blocos for menor que 4, nao eh possivel formatar
-        printf("Entrada inválida, a quantidade de blocos deve possuir ao menos 3 blocos (sb, fat, root)\n");
+        printf("Entrada inválida, a quantidade de blocos deve possuir ao menos 4 blocos (sb, fat, root, data#1)\n");
         return;
     }
     
-    facc_format(4096, blockQtde); //formata o disco
+    facc_format(blockSize, blockQtde); //formata o disco
+}
+
+/*
+===============================================================================
+========================== copyItem() =========================================
+===============================================================================
+*/
+
+void copyItem(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, char* source, char* destination){  
+    int entryFound = -1;
+    int sourceEntry = 0;
+
+    //se nao estiver buscando arquivos externos:
+    if(strncmp(destination, "dsc", 3) != 0){
+        //checar se existe uma entrada com este nome
+        for(int i=0; i<diretorioAtual->meta.entryQtde; i++){ // Percorre o diretorio
+            if(strcmp(diretorioAtual->entries[i]->name, source) == 0){ // Se encontrar o arquivo
+                entryFound = i;
+                sourceEntry = i;
+                break;
+            }
+        }
+
+        //se nao existir uma entrada retorna erro
+        if(entryFound == -1){
+            printf("Erro, nao existe um arquivo com este nome\n");
+            return;
+        }
+    }
+
+    // >>>>>>>>>>>>>>>>> passo 1 <<<<<<<<<<<<<<<<<
+    // >>>>>>>>>>>>>>>>> passo 1 <<<<<<<<<<<<<<<<<
+    //Separar em novo nome e encontrar o proximo diretorio
+    char path[250];
+    char newName[50];
+    char fileType[50];
+
+    //encontrar novo path
+    strcpy(path, destination);
+    int size = strlen(path);
+    while(size>=0){ // percorre o caminho
+        if(path[size] == '/'){ // se encontrar um '/'
+            path[size] = '\0'; // corta o caminho
+            break; // para de percorrer o caminho
+        }
+        size--; 
+    }
+    if(strlen(path) == strlen(destination)){ //se nao houver nenhum '/' eh pra renomear, portanto path eh vazio
+        path[0] = '\0';
+    }
+
+    //encontrar o nome do arquivo
+    int nameIndex = 0;
+    for(int i=size+1; i<strlen(destination); i++){
+        newName[nameIndex] = destination[i];
+        nameIndex++;
+    }
+
+    //encontrar a extensao do arquivo
+    int flag = 0;
+    int ext = 0;
+    for(int i=0; i<strlen(newName); i++){
+        if(flag == 1){
+            fileType[ext] = newName[i];
+            ext++;
+        }
+        if(newName[i] == '.' && i != 0){
+            nameIndex = i;
+            flag = 1;
+        }
+    }
+
+    fileType[ext] = '\0';
+    fileType[3] = '\0';
+
+    newName[nameIndex] = '\0';
+    newName[7] = '\0'; //limitando em 8 caracteres.
+
+    // >>>>>>>>>>>>>>>>> passo 2 <<<<<<<<<<<<<<<<<
+    // >>>>>>>>>>>>>>>>> passo 2 <<<<<<<<<<<<<<<<<
+
+    // se nao existir path, ele entra aqui e duplica
+    if(strlen(path) < 1){
+
+        //verificar se ja existe um arquivo com o mesmo nome no diretorio destino
+        for(int i=0; i<diretorioAtual->meta.entryQtde; i++){ // Percorre o diretorio
+            if(strcmp(diretorioAtual->entries[i]->name, newName) == 0){ // Se encontrar um arquivo
+                printf("Erro, ja existe um arquivo com o nome '%s' no diretorio destino '%s'\n", newName, diretorioAtual->meta.name);
+                return;
+            }
+        }
+
+        //verificar se o arquivo que esta sendo copiado eh um diretorio e esta vazio
+        if(strcmp(diretorioAtual->entries[sourceEntry]->type, "dir") == 0){
+            DirChunk* auxdir = facc_loadDir(sb, fat, diretorioAtual->entries[sourceEntry]->firstBlock);
+            
+            //verifica se o diretorio ta vazio
+            if(auxdir->meta.entryQtde > 2){
+                printf("Erro: Nao eh possivel copiar um diretorio nao vazio.\n");
+                facc_unloadDirectory(auxdir);
+                return;
+            }
+            
+            //caso nao esteja vazio
+            makeDirectory(sb, fat, diretorioAtual, newName);
+            facc_unloadDirectory(auxdir);
+
+        //caso nao seja um diretorio
+        }else{
+            //openFile;
+            int freeBlock = facc_findFreeBlock(sb, fat);
+            file_chunk* fc = openFile(sb, fat, diretorioAtual->entries[sourceEntry]);
+            saveFile(sb, fat, fc, freeBlock);
+
+            //createMeta
+            Entry* ref = (Entry*)malloc(sizeof(Entry));
+            strcpy(ref->name, newName);
+            strcpy(ref->type, diretorioAtual->entries[sourceEntry]->type);
+            ref->firstBlock = freeBlock;
+            ref->bytes = fc->bytes;
+            facc_updateDirAdd(sb, fat, diretorioAtual, ref);
+
+            //atualizar o diretorio atual
+            // int firstBlock = diretorioAtual->meta.firstBlock;
+            // facc_unloadDirectory(diretorioAtual);
+            // DirChunk* dir = facc_loadDir(sb, fat, firstBlock);
+            // *diretorioAtual = *dir;
+            
+            free(fc->file);
+            free(fc);
+        }
+
+
+    // se existir path, ele percorre o path procurando o ultimo diretorio
+    }else{
+        DirChunk* dir = facc_loadDir(sb, fat, diretorioAtual->meta.firstBlock);
+        int firstBlock;
+
+        char* token = strtok(path, "/");
+
+        //verificar se eh pra trazer um arquivo externo
+        //verificar se eh pra trazer um arquivo externo
+        //verificar se eh pra trazer um arquivo externo
+        //verificar se eh pra trazer um arquivo externo
+        if(strcmp(token, "dsc") == 0){
+            //verificar searquivo existe
+            if(access(source, F_OK) != 0){
+                printf("Erro, nao foi possivel encontrar no um arquivo '%s' no sistema real de arquivos.\n", source);
+                return;
+            }
+
+            //remover 'dsc'
+            token = strtok(NULL, "/");
+
+            while(token != NULL){
+                //verificar se o diretorio existe
+                entryFound = -1;
+                for(int i=0; i<dir->meta.entryQtde; i++){ // Percorre o diretorio
+                    if(strcmp(dir->entries[i]->name, token) == 0){ // Se encontrar um arquivo
+                        if(strcmp(dir->entries[i]->type, "dir") == 0){  //se o arquivo for dir
+                            entryFound = i;
+                        }
+                    }
+                }
+                if(entryFound == -1){
+                    printf("Erro, diretorio de destino '%s' nao existe.\n", token);
+                    return;
+                }
+
+                //se o diretorio existir:
+                firstBlock = dir->entries[entryFound]->firstBlock;
+                if(dir != diretorioAtual) facc_unloadDirectory(dir);
+                dir = facc_loadDir(sb, fat, firstBlock);
+
+                token = strtok(NULL, "/");
+            }
+
+            //verificar se ja existe um arquivo com o mesmo nome no diretorio destino
+            for(int i=0; i<dir->meta.entryQtde; i++){ // Percorre o diretorio
+                if(strcmp(dir->entries[i]->name, newName) == 0){ // Se encontrar um arquivo
+                    printf("Erro, ja existe um arquivo com o nome '%s' no diretorio destino '%s'\n", newName, dir->meta.name);
+                    return;
+                }
+            }
+
+            //######
+            //carregar arquivo e fazer um file_chunk* dele.
+            file_chunk* fc = importFile(source);
+
+            //se deu certo
+            if(fc != NULL){
+                //guardar arquivo em um bloco
+                int freeBlock = facc_findFreeBlock(sb, fat);
+                saveFile(sb, fat, fc, freeBlock);
+
+                //criar entrada no diratual;
+                Entry* ref = (Entry*)malloc(sizeof(Entry));
+                strcpy(ref->name, newName);
+                if(strlen(fileType) > 0) strcpy(ref->type, fileType);
+                else strcpy(ref->type, "file");
+                ref->bytes = fc->bytes;
+                ref->firstBlock = freeBlock;
+
+                //adicionar entrada no dir atual;
+                facc_updateDirAdd(sb, fat, dir, ref);
+
+                if(dir->meta.firstBlock == diretorioAtual->meta.firstBlock){
+                    printf("diretorioatual\n");
+                    int dirBlock = dir->meta.firstBlock;
+                    facc_unloadDirectory(diretorioAtual);
+                    diretorioAtual = facc_loadDir(sb, fat, dirBlock);
+                }
+
+                //del file_chunk
+                facc_unloadDirectory(dir);
+                free(fc->file);
+                free(fc);
+            }
+
+
+        //caso seja apenas pra copiar um arquivo interno
+        //caso seja apenas pra copiar um arquivo interno
+        //caso seja apenas pra copiar um arquivo interno
+        //caso seja apenas pra copiar um arquivo interno
+        }else{
+            if(strcmp(token, source) == 0){
+                printf("Erro, nao eh possivel copiar um arquivo para dentro dele mesmo. (%s > %s)\n", source, token);
+                return;
+            }
+
+            while(token != NULL){
+                //verificar se o diretorio existe
+                entryFound = -1;
+                for(int i=0; i<dir->meta.entryQtde; i++){ // Percorre o diretorio
+                    if(strcmp(dir->entries[i]->name, token) == 0){ // Se encontrar um arquivo
+                        if(strcmp(dir->entries[i]->type, "dir") == 0){  //se o arquivo for dir
+                            entryFound = i;
+                        }
+                    }
+                }
+                if(entryFound == -1){
+                    printf("Erro, diretorio de destino '%s' nao existe.\n", token);
+                    return;
+                }
+
+                //se o diretorio existir:
+                firstBlock = dir->entries[entryFound]->firstBlock;
+                if(dir != diretorioAtual) facc_unloadDirectory(dir);
+                dir = facc_loadDir(sb, fat, firstBlock);
+
+                token = strtok(NULL, "/");
+            }
+            
+            // printf("diretorio %s, entryqtde %d\n", dir->meta.name, dir->meta.entryQtde);
+
+            // >>>>>>>>>>>>>>>>> passo 3 <<<<<<<<<<<<<<<<<
+            // >>>>>>>>>>>>>>>>> passo 3 <<<<<<<<<<<<<<<<<
+
+            //verificar se ja existe um arquivo com o mesmo nome no diretorio destino
+            for(int i=0; i<dir->meta.entryQtde; i++){ // Percorre o diretorio
+                if(strcmp(dir->entries[i]->name, newName) == 0){ // Se encontrar um arquivo
+                    printf("Erro, ja existe um arquivo com o nome '%s' no diretorio destino '%s'\n", newName, dir->entries[i]->name);
+                    return;
+                }
+            }
+
+            //verificar se o arquivo que esta sendo copiado eh um diretorio e esta vazio
+            if(strcmp(diretorioAtual->entries[sourceEntry]->type, "dir") == 0){
+                DirChunk* auxdir = facc_loadDir(sb, fat, diretorioAtual->entries[sourceEntry]->firstBlock);
+                
+                //verifica se o diretorio ta vazio
+                if(auxdir->meta.entryQtde > 2){
+                    printf("Erro: Nao eh possivel copiar um diretorio nao vazio.\n");
+                    facc_unloadDirectory(auxdir);
+                    return;
+                }
+                
+                //caso nao esteja vazio
+                makeDirectory(sb, fat, dir, newName);
+                facc_unloadDirectory(auxdir);
+
+            //caso nao seja um diretorio
+            }else{
+                //openFile;
+                int freeBlock = facc_findFreeBlock(sb, fat);
+                file_chunk* fc = openFile(sb, fat, dir->entries[sourceEntry]);
+                saveFile(sb, fat, fc, freeBlock);
+
+                //createMeta
+                Entry* ref = (Entry*)malloc(sizeof(Entry));
+                strcpy(ref->name, newName);
+                strcpy(ref->type, dir->entries[sourceEntry]->type);
+                ref->firstBlock = freeBlock;
+                ref->bytes = fc->bytes;
+                facc_updateDirAdd(sb, fat, dir, ref);
+
+                //tirar da memoria o diretorio destino
+                facc_unloadDirectory(dir);
+                free(fc->file);
+                free(fc);
+            }
+        }
+    }
+}
+
+
+/*
+===============================================================================
+========================== exportItem() =========================================
+===============================================================================
+*/
+
+void exportItem(Superblock* sb, Fat* fat, DirChunk* diretorioAtual, char* source, char* destination){
+    if(access(destination, F_OK) == 0){
+        printf("Erro, ja existe um arquivo chamado '%s' no diretorio do programa.\n");
+        return;
+    }
+
+    int entryIndex = 0;
+    int notFound = 1;
+    //buscando o arquivo no diretorio
+    for(int i=0; i<diretorioAtual->meta.entryQtde; i++){
+        //achou o arquivo
+        if(strcmp(diretorioAtual->entries[i]->name, source) == 0){
+            //se for diretorio
+            if(strcmp(diretorioAtual->entries[i]->type, "dir") == 0){
+                printf("Erro, nao eh possivel exportar um diretorio\n");
+                return;
+            }
+
+            //se encontrou um arquivo
+            notFound = 0;
+            entryIndex = i;
+            break;
+        }
+    }
+    if(notFound == 1){
+        printf("Erro, arquivo '%s' nao existe no diretorio atual.\n", source);
+        return;
+    }
+
+    //carregando o arquivo na memoria
+    file_chunk* fc = openFile(sb, fat, diretorioAtual->entries[entryIndex]);
+
+    //exportanto arquivo
+    FILE* file = fopen(destination, "wb");
+    fwrite(fc->file, sizeof(char), fc->bytes, file);
+    fclose(file);
+    
+    free(fc->file);
+    free(fc);
+}
+
+/*
+===============================================================================
+========================== printFat() =========================================
+===============================================================================
+*/
+
+void printFat(Superblock* sb, Fat* fat){
+    printf("FAT => ");
+    for(int i = 0; i < sb->blockQtde; i++){
+        if(fat[i] == FAT_L)         printf("L");
+        else if(fat[i] == FAT_F)    printf("F");
+        else if(fat[i] == FAT_R)    printf("R");
+        else if(fat[i] == FAT_B)    printf("B");
+        else                        printf("%d", fat[i]);
+        if(i != sb->blockQtde-1)    printf(", ");
+    }
+    printf("\n");
 }
